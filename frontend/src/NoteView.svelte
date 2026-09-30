@@ -2,7 +2,7 @@
   import { onMount, tick } from 'svelte'
   import { Browser, Events } from '@wailsio/runtime'
   import { NoteService } from '../bindings/github.com/dvher/pogo'
-  import type { Note } from '../bindings/github.com/dvher/pogo/internal/store/models'
+  import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
   import { colorNames, colorOf } from './lib/colors'
   import { render, toggleTask } from './lib/markdown'
 

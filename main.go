@@ -8,12 +8,13 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 
-	"github.com/dvher/pogo/internal/secure"
-	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/internal/localkey"
+	"github.com/dvher/pogo/pkg/pogosync"
+	"github.com/dvher/pogo/pkg/secure"
+	"github.com/dvher/pogo/pkg/store"
 )
 
 //go:embed all:frontend/dist
@@ -32,7 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	key, err := secure.LocalKey(dataDir)
+	key, err := localkey.Get(dataDir)
 	if err != nil {
 		log.Fatalf("encryption key: %v", err)
 	}
@@ -46,16 +47,12 @@ func main() {
 	}
 	defer st.Close()
 
-	deviceID := st.Setting(keyDeviceID, "")
-	if deviceID == "" {
-		deviceID = uuid.NewString()
-		st.SetSetting(keyDeviceID, deviceID)
-	}
+	deviceID := pogosync.DeviceID(st)
 
 	windows := NewWindowManager(st)
 	syncSvc := NewSyncService(st, windows, deviceID)
 	notes := &NoteService{store: st, windows: windows, sync: syncSvc, deviceID: deviceID}
-	settings := &SettingsService{store: st, sync: syncSvc}
+	settings := &SettingsService{sync: syncSvc}
 
 	// One instance per data directory; a second launch opens the manager.
 	instanceID := sha256.Sum256([]byte(dataDir))

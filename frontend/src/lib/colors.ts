@@ -1,4 +1,4 @@
-// Keep in sync with noteColors in windows.go.
+// Keep in sync with pkg/palette/palette.go.
 export const colors: Record<string, { bg: string; ink: string; accent: string }> = {
   yellow: { bg: '#fff176', ink: '#3e3500', accent: '#c7b200' },
   pink:   { bg: '#f8bbd0', ink: '#4a1027', accent: '#d0668c' },

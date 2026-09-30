@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/pkg/secure"
 )
 
 func open(t *testing.T) *Store {

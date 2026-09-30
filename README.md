@@ -150,10 +150,13 @@ repo next to this one, as `../server` or `../pogo_pad`, and is skipped if neithe
 | Note windows (frameless, always on top), niri placement | `windows.go` |
 | Xwayland fallback | `platform_linux.go` |
 | Frontend API: create, edit, hide, anchor, delete | `notes.go` |
-| Sync loop, E2E encode/decode | `sync.go` |
-| Sync settings, test connection, E2E on/off | `settings.go` |
-| Encrypted local SQLite store | `internal/store` |
-| Keyring key, AES-GCM, Argon2id | `internal/secure` |
+| Sync loop, E2E encode/decode, sync settings (shared with Pogo Pocket) | `pkg/pogosync` |
+| Sync glue: window updates, events for the manager | `sync.go`, `settings.go` |
+| Encrypted local SQLite store | `pkg/store` |
+| AES-GCM, Argon2id | `pkg/secure` |
+| OS keyring key | `internal/localkey` |
+| Pogo Pad HTTP client | `pkg/syncclient` |
+| Note colors | `pkg/palette` |
 | niri IPC client | `internal/niri` |
 | Note UI, Markdown and tasks, manager UI | `frontend/src/NoteView.svelte`, `frontend/src/lib/markdown.ts`, `frontend/src/Manager.svelte` |
 

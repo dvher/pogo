@@ -9,8 +9,3 @@ export {
     SettingsService,
     SyncService
 };
-
-export type {
-    Settings,
-    SyncStatus
-} from "./models.js";

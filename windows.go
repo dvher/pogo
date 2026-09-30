@@ -11,20 +11,9 @@ import (
 
 	"github.com/dvher/pogo/internal/gtktitle"
 	"github.com/dvher/pogo/internal/niri"
-	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/pkg/palette"
+	"github.com/dvher/pogo/pkg/store"
 )
-
-// noteColors are the window background colours used before the page paints.
-// Keep in sync with frontend/src/lib/colors.ts.
-var noteColors = map[string][3]uint8{
-	"yellow": {0xff, 0xf1, 0x76},
-	"pink":   {0xf8, 0xbb, 0xd0},
-	"green":  {0xc5, 0xe1, 0xa5},
-	"blue":   {0xb3, 0xe5, 0xfc},
-	"purple": {0xd1, 0xc4, 0xe9},
-	"orange": {0xff, 0xcc, 0x80},
-	"gray":   {0xe0, 0xe0, 0xe0},
-}
 
 // WindowManager owns one frameless, always-on-top window per visible note.
 type WindowManager struct {
@@ -89,10 +78,7 @@ func (wm *WindowManager) Open(n store.Note) {
 		w.Focus()
 		return
 	}
-	rgb, ok := noteColors[n.Color]
-	if !ok {
-		rgb = noteColors["yellow"]
-	}
+	rgb := palette.Get(n.Color).BG
 	opts := application.WebviewWindowOptions{
 		Name:             "note-" + n.ID,
 		Title:            wm.windowTitle(n.ID),

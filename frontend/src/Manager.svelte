@@ -2,8 +2,8 @@
   import { onMount } from 'svelte'
   import { Events } from '@wailsio/runtime'
   import { NoteService, SettingsService, SyncService } from '../bindings/github.com/dvher/pogo'
-  import type { Settings, SyncStatus } from '../bindings/github.com/dvher/pogo'
-  import type { Note } from '../bindings/github.com/dvher/pogo/internal/store/models'
+  import type { Settings, Status as SyncStatus } from '../bindings/github.com/dvher/pogo/pkg/pogosync/models'
+  import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
   import { colorOf } from './lib/colors'
   import { titleOf } from './lib/markdown'
 

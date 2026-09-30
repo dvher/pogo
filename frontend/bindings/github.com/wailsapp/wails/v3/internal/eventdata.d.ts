@@ -7,17 +7,17 @@ import type { Events } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import type * as main$0 from "../../../../dvher/pogo/models.js";
+import type * as pogosync$0 from "../../../../dvher/pogo/pkg/pogosync/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import type * as store$0 from "../../../../dvher/pogo/internal/store/models.js";
+import type * as store$0 from "../../../../dvher/pogo/pkg/store/models.js";
 
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
             "note:changed": store$0.Note;
             "notes:changed": void;
-            "sync:status": main$0.SyncStatus;
+            "sync:status": pogosync$0.Status;
         }
     }
 }

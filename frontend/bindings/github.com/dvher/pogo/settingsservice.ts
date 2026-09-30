@@ -12,26 +12,24 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as $models from "./models.js";
+import * as pogosync$0 from "./pkg/pogosync/models.js";
 
 /**
- * DisableE2E turns off end-to-end encryption for every device on the server
- * and re-uploads notes in plaintext.
+ * DisableE2E turns off end-to-end encryption for every device on the server.
  */
 export function DisableE2E(): $CancellablePromise<void> {
     return $Call.ByID(3416704430);
 }
 
 /**
- * EnableE2E turns on end-to-end encryption with passphrase. If the server
- * already uses E2E the passphrase must match; otherwise E2E is set up on the
- * server and all notes are re-uploaded encrypted.
+ * EnableE2E turns on end-to-end encryption, or unlocks it on this device if
+ * the server already uses it.
  */
 export function EnableE2E(passphrase: string): $CancellablePromise<void> {
     return $Call.ByID(2757341415, passphrase);
 }
 
-export function Get(): $CancellablePromise<$models.Settings> {
+export function Get(): $CancellablePromise<pogosync$0.Settings> {
     return $Call.ByID(710695688);
 }
 
@@ -39,13 +37,13 @@ export function Get(): $CancellablePromise<$models.Settings> {
  * Save stores settings. Pointing at a different server resets the sync
  * cursor and queues every note for upload.
  */
-export function Save($in: $models.Settings): $CancellablePromise<$models.Settings> {
+export function Save($in: pogosync$0.Settings): $CancellablePromise<pogosync$0.Settings> {
     return $Call.ByID(2704157817, $in);
 }
 
 /**
  * TestConnection checks the given (unsaved) settings against the server.
  */
-export function TestConnection($in: $models.Settings): $CancellablePromise<string> {
+export function TestConnection($in: pogosync$0.Settings): $CancellablePromise<string> {
     return $Call.ByID(4262511440, $in);
 }

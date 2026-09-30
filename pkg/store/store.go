@@ -13,7 +13,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/pkg/secure"
 )
 
 var ErrNotFound = errors.New("note not found")

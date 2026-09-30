@@ -3,13 +3,13 @@ package secure
 import "testing"
 
 func TestSealOpen(t *testing.T) {
-	c, _ := NewCipher(randomKey())
+	c, _ := NewCipher(NewKey())
 	sealed := c.Seal([]byte("- [ ] buy milk"))
 	got, err := c.Open(sealed)
 	if err != nil || string(got) != "- [ ] buy milk" {
 		t.Fatalf("roundtrip: %q %v", got, err)
 	}
-	other, _ := NewCipher(randomKey())
+	other, _ := NewCipher(NewKey())
 	if _, err := other.Open(sealed); err != ErrDecrypt {
 		t.Fatalf("wrong key: %v", err)
 	}

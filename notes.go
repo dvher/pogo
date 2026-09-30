@@ -7,20 +7,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/pkg/palette"
+	"github.com/dvher/pogo/pkg/pogosync"
+	"github.com/dvher/pogo/pkg/store"
 )
 
 // Events emitted to the frontend.
 const (
 	EventNoteChanged = "note:changed"  // data: store.Note
 	EventListChanged = "notes:changed" // any note was added, removed, shown or hidden
-	EventSyncStatus  = "sync:status"   // data: SyncStatus
+	EventSyncStatus  = "sync:status"   // data: pogosync.Status
 )
 
 func init() {
 	application.RegisterEvent[store.Note](EventNoteChanged)
 	application.RegisterEvent[application.Void](EventListChanged)
-	application.RegisterEvent[SyncStatus](EventSyncStatus)
+	application.RegisterEvent[pogosync.Status](EventSyncStatus)
 }
 
 const defaultNoteContent = "# New note\n\n- [ ] something to do\n"
@@ -66,7 +68,7 @@ func (s *NoteService) SetContent(id, content string) (store.Note, error) {
 }
 
 func (s *NoteService) SetColor(id, color string) (store.Note, error) {
-	if _, ok := noteColors[color]; !ok {
+	if !palette.Valid(color) {
 		return store.Note{}, fmt.Errorf("unknown color %q", color)
 	}
 	n, err := s.store.Edit(id, s.deviceID, nil, &color, false)

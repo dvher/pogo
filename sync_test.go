@@ -13,8 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dvher/pogo/internal/secure"
-	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/pkg/pogosync"
+	"github.com/dvher/pogo/pkg/secure"
+	"github.com/dvher/pogo/pkg/store"
 )
 
 // startServer builds and runs ../server and returns its port, a token and
@@ -82,8 +83,8 @@ func newDevice(t *testing.T, name, port, token string) *device {
 	}
 	t.Cleanup(func() { st.Close() })
 	sy := NewSyncService(st, nil, name)
-	d := &device{store: st, sync: sy, settings: &SettingsService{store: st, sync: sy}}
-	if _, err := d.settings.Save(Settings{Scheme: "http", Host: "127.0.0.1", Port: port, Token: token, Enabled: true, IntervalSec: 30}); err != nil {
+	d := &device{store: st, sync: sy, settings: &SettingsService{sync: sy}}
+	if _, err := d.settings.Save(pogosync.Settings{Scheme: "http", Host: "127.0.0.1", Port: port, Token: token, Enabled: true, IntervalSec: 30}); err != nil {
 		t.Fatal(err)
 	}
 	return d
@@ -92,14 +93,14 @@ func newDevice(t *testing.T, name, port, token string) *device {
 func (d *device) add(t *testing.T, id, content string) {
 	t.Helper()
 	now := time.Now().UnixMilli()
-	if err := d.store.Insert(store.Note{ID: id, Content: content, Color: "pink", CreatedAt: now, UpdatedAt: now, DeviceID: d.sync.deviceID, W: 260, H: 260}); err != nil {
+	if err := d.store.Insert(store.Note{ID: id, Content: content, Color: "pink", CreatedAt: now, UpdatedAt: now, DeviceID: d.sync.engine.DeviceID(), W: 260, H: 260}); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func (d *device) edit(t *testing.T, id, content string) {
 	t.Helper()
-	if _, err := d.store.Edit(id, d.sync.deviceID, &content, nil, false); err != nil {
+	if _, err := d.store.Edit(id, d.sync.engine.DeviceID(), &content, nil, false); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -240,7 +241,7 @@ func TestSyncEndToEnd(t *testing.T) {
 	}
 
 	// A bad token is reported clearly.
-	if _, err := a.settings.TestConnection(Settings{Host: "127.0.0.1", Port: port, Token: "pogo_wrong"}); err == nil || !strings.Contains(err.Error(), "token") {
+	if _, err := a.settings.TestConnection(pogosync.Settings{Host: "127.0.0.1", Port: port, Token: "pogo_wrong"}); err == nil || !strings.Contains(err.Error(), "token") {
 		t.Fatalf("bad token: %v", err)
 	}
 	if msg, err := a.settings.TestConnection(a.settings.Get()); err != nil || !strings.Contains(msg, "Token OK") {
