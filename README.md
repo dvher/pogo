@@ -75,6 +75,11 @@ wails3 build                         # → bin/pogo
 wails3 task linux:create:deb         # → bin/*.deb (optional)
 ```
 
+Ubuntu 23.10+ only lets apps create user namespaces if AppArmor allows it, and WebKit's sandbox needs
+one. The `.deb` installs a profile for `/usr/local/bin/pogo` (`build/linux/apparmor/pogo`). To run
+`bin/pogo` directly, either copy that profile with the path changed into `/etc/apparmor.d/` and load it
+with `sudo apparmor_parser -r`, or start it with `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1`.
+
 ### Ubuntu 22.04 / Debian 12
 
 These don't have WebKitGTK 6.0, so build the GTK 3 variant:
