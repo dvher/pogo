@@ -158,3 +158,7 @@ repo next to this one, as `../server` or `../pogo_pad`, and is skipped if neithe
 | Note UI, Markdown and tasks, manager UI | `frontend/src/NoteView.svelte`, `frontend/src/lib/markdown.ts`, `frontend/src/Manager.svelte` |
 
 The sync protocol is documented in Pogo Pad's [API.md](https://github.com/dvher/pogo_pad/blob/master/API.md).
+
+## License
+
+[MIT](LICENSE)
