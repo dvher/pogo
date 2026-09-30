@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=notes-desktop
+Exec=notes-desktop
+Icon=notes-desktop
+Categories=Development;
+Terminal=false
+Keywords=wails
+Version=1.0
+StartupNotify=false

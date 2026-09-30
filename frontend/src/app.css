@@ -1,0 +1,54 @@
+:root {
+  --m-bg: #f6f6f4;
+  --m-surface: #ffffff;
+  --m-border: #dddcd6;
+  --m-text: #1f1f1d;
+  --m-muted: #6b6a64;
+  --m-primary: #b58900;
+  --m-primary-ink: #ffffff;
+  --m-danger: #c62828;
+  --m-ok: #2e7d32;
+  font-family: system-ui, 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --m-bg: #1c1c1b;
+    --m-surface: #262625;
+    --m-border: #3a3a38;
+    --m-text: #ecebe6;
+    --m-muted: #a3a29b;
+    --m-primary: #e0b020;
+    --m-primary-ink: #1c1c1b;
+    --m-danger: #ef5350;
+    --m-ok: #66bb6a;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body.note-window {
+  overflow: hidden;
+  user-select: none;
+  background: transparent;
+}
+
+body.manager-window {
+  background: var(--m-bg);
+  color: var(--m-text);
+}
+
+button {
+  font: inherit;
+}
