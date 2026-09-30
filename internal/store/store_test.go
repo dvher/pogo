@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"notes-desktop/internal/secure"
+	"github.com/dvher/pogo/internal/secure"
 )
 
 func open(t *testing.T) *Store {
@@ -34,8 +34,8 @@ func TestContentEncryptedAtRest(t *testing.T) {
 		t.Fatalf("get: %+v %v", n, err)
 	}
 
-	s.SetSecretSetting("token", "nts_abc")
-	if s.Setting("token", "") == "nts_abc" || s.SecretSetting("token") != "nts_abc" {
+	s.SetSecretSetting("token", "pogo_abc")
+	if s.Setting("token", "") == "pogo_abc" || s.SecretSetting("token") != "pogo_abc" {
 		t.Fatal("secret setting not encrypted or not readable")
 	}
 }

@@ -1,5 +1,5 @@
 {
-  description = "Sticky notes desktop app (Wails v3)";
+  description = "Pogo — sticky notes that float above your windows (Wails v3)";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

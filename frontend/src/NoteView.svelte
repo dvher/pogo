@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte'
   import { Browser, Events } from '@wailsio/runtime'
-  import { NoteService } from '../bindings/notes-desktop'
-  import type { Note } from '../bindings/notes-desktop/internal/store/models'
+  import { NoteService } from '../bindings/github.com/dvher/pogo'
+  import type { Note } from '../bindings/github.com/dvher/pogo/internal/store/models'
   import { colorNames, colorOf } from './lib/colors'
   import { render, toggleTask } from './lib/markdown'
 

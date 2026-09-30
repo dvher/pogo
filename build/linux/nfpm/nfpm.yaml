@@ -3,7 +3,7 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "notes-desktop"
+name: "pogo"
 arch: ${GOARCH}
 platform: "linux"
 version: "0.1.0"
@@ -11,17 +11,17 @@ section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
 description: "Markdown sticky notes that float above your windows"
-vendor: "Sticky Notes"
+vendor: "Pogo"
 license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/notes-desktop"
-    dst: "/usr/local/bin/notes-desktop"
+  - src: "./bin/pogo"
+    dst: "/usr/local/bin/pogo"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/notes-desktop.png"
-  - src: "./build/linux/notes-desktop.desktop"
-    dst: "/usr/share/applications/notes-desktop.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/pogo.png"
+  - src: "./build/linux/pogo.desktop"
+    dst: "/usr/share/applications/pogo.desktop"
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
 depends:

@@ -5,9 +5,9 @@ version: '3'
 
 # This information is used to generate the build assets.
 info:
-  companyName: "Sticky Notes" # The name of the company
-  productName: "Sticky Notes" # The name of the application
-  productIdentifier: "dev.stickynotes.desktop" # The unique product identifier
+  companyName: "Pogo" # The name of the company
+  productName: "Pogo" # The name of the application
+  productIdentifier: "dev.pogo.desktop" # The unique product identifier
   description: "Markdown sticky notes that float above your windows" # The application description
   copyright: "(c) 2026" # Copyright text
   comments: "Self-hostable sync" # Comments

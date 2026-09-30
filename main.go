@@ -12,8 +12,8 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 
-	"notes-desktop/internal/secure"
-	"notes-desktop/internal/store"
+	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/internal/store"
 )
 
 //go:embed all:frontend/dist
@@ -60,7 +60,7 @@ func main() {
 	// One instance per data directory; a second launch opens the manager.
 	instanceID := sha256.Sum256([]byte(dataDir))
 	app := application.New(application.Options{
-		Name:        "Sticky Notes",
+		Name:        "Pogo",
 		Description: "Markdown sticky notes that float above your windows",
 		Icon:        appIcon,
 		Services: []application.Service{
@@ -75,7 +75,7 @@ func main() {
 			ActivationPolicy: application.ActivationPolicyAccessory,
 		},
 		SingleInstance: &application.SingleInstanceOptions{
-			UniqueID: "dev.stickynotes.desktop.i" + hex.EncodeToString(instanceID[:6]),
+			UniqueID: "dev.pogo.desktop.i" + hex.EncodeToString(instanceID[:6]),
 			OnSecondInstanceLaunch: func(application.SecondInstanceData) {
 				notes.OpenManager()
 			},
@@ -86,7 +86,7 @@ func main() {
 
 	manager := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:      "manager",
-		Title:     "Sticky Notes",
+		Title:     "Pogo",
 		URL:       "/?view=manager",
 		Width:     760,
 		Height:    560,
@@ -145,12 +145,12 @@ func setupTray(app *application.App, notes *NoteService, syncSvc *SyncService, w
 
 	tray := app.SystemTray.New()
 	tray.SetIcon(trayIcon)
-	tray.SetTooltip("Sticky Notes")
+	tray.SetTooltip("Pogo")
 	tray.SetMenu(menu)
 	tray.OnClick(notes.OpenManager)
 }
 
-const welcomeNote = `# Welcome to Sticky Notes
+const welcomeNote = `# Welcome to Pogo 🟨
 
 - [x] Click a note to show its dots
 - [ ] 🎨 color · ✏️ edit · 👁 hide · 📌 anchor

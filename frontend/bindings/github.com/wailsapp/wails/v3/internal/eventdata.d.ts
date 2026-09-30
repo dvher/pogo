@@ -7,10 +7,10 @@ import type { Events } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import type * as main$0 from "../../../../../notes-desktop/models.js";
+import type * as main$0 from "../../../../dvher/pogo/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import type * as store$0 from "../../../../../notes-desktop/internal/store/models.js";
+import type * as store$0 from "../../../../dvher/pogo/internal/store/models.js";
 
 declare module "@wailsio/runtime" {
     namespace Events {

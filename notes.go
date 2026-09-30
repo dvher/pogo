@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"notes-desktop/internal/store"
+	"github.com/dvher/pogo/internal/store"
 )
 
 // Events emitted to the frontend.

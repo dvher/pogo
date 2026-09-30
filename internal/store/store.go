@@ -13,7 +13,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"notes-desktop/internal/secure"
+	"github.com/dvher/pogo/internal/secure"
 )
 
 var ErrNotFound = errors.New("note not found")
@@ -68,16 +68,16 @@ type Store struct {
 	cipher *secure.Cipher
 }
 
-// DefaultDataDir returns $NOTES_DATA_DIR or the per-user config directory.
+// DefaultDataDir returns $POGO_DATA_DIR or the per-user config directory.
 func DefaultDataDir() (string, error) {
-	if d := os.Getenv("NOTES_DATA_DIR"); d != "" {
+	if d := os.Getenv("POGO_DATA_DIR"); d != "" {
 		return filepath.Abs(d)
 	}
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(base, "notes-desktop"), nil
+	return filepath.Join(base, "pogo"), nil
 }
 
 // Open opens the database in dir, encrypting with c.

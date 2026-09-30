@@ -1,4 +1,4 @@
-// Package syncclient talks to a notes-server instance (see server/API.md).
+// Package syncclient talks to a Pogo Pad sync server (see server/API.md).
 package syncclient
 
 import (
@@ -135,7 +135,7 @@ func (c *Client) do(ctx context.Context, method, path string, in, out any) error
 	return nil
 }
 
-// Health checks that a notes-server is listening at the base URL.
+// Health checks that a Pogo Pad server is listening at the base URL.
 func (c *Client) Health(ctx context.Context) (version string, err error) {
 	var out struct {
 		OK      bool   `json:"ok"`
@@ -143,7 +143,7 @@ func (c *Client) Health(ctx context.Context) (version string, err error) {
 	}
 	if err := c.do(ctx, "GET", "/api/v1/health", nil, &out); err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return "", errors.New("the address responded but is not a notes server")
+			return "", errors.New("the address responded but is not a Pogo Pad server")
 		}
 		return "", err
 	}

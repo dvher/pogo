@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-const keyringService = "notes-desktop"
+const keyringService = "pogo"
 
 // ErrDecrypt is returned when ciphertext cannot be decrypted with the key.
 var ErrDecrypt = errors.New("decryption failed (wrong key or corrupted data)")

@@ -9,9 +9,9 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 
-	"notes-desktop/internal/gtktitle"
-	"notes-desktop/internal/niri"
-	"notes-desktop/internal/store"
+	"github.com/dvher/pogo/internal/gtktitle"
+	"github.com/dvher/pogo/internal/niri"
+	"github.com/dvher/pogo/internal/store"
 )
 
 // noteColors are the window background colours used before the page paints.
@@ -52,7 +52,7 @@ func NewWindowManager(s *store.Store) *WindowManager {
 	}
 }
 
-func (wm *WindowManager) windowTitle(id string) string { return "Sticky note " + id }
+func (wm *WindowManager) windowTitle(id string) string { return "Pogo note " + id }
 
 // Start opens all visible notes and, on niri, starts tracking window moves.
 func (wm *WindowManager) Start() {

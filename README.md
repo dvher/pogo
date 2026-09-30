@@ -1,111 +1,160 @@
-# Sticky Notes — desktop
+# 🟨 Pogo
 
-Markdown sticky notes that float above your other windows.
+**Sticky notes that bounce between your devices.**
 
-- **Markdown:** notes are written in Markdown and displayed rendered. Click a `- [ ]` task to cross it off.
-- **Dots:** click a note to show its dots: 🎨 color · ✏️ edit · 👁 hide · 📌 anchor. An anchored note can't be dragged or resized.
-- **Move and resize:** drag a note anywhere; resize it from its edges or bottom-right corner.
-- **Tray icon:** opens the manager (search, show/hide, delete) and the sync settings.
-- **Encryption:** note content and the sync token are encrypted in the local database with AES-256-GCM. The key lives in your OS keyring (Secret Service / Keychain / Credential Manager).
-- **Sync:** optional, through a self-hosted [`notes-server`](../server), with optional end-to-end encryption.
+Pogo (**Po**st-it + **Go**) puts small Markdown notes on your desktop, above your other windows. Drag
+them where you want, anchor them in place, and tick off tasks as you go. When you want your notes
+on another computer, Pogo syncs through **[Pogo Pad](https://github.com/dvher/pogo_pad)**, a tiny server you host yourself,
+with optional end-to-end encryption.
 
-Built with [Wails v3](https://v3.wails.io) (Go + Svelte/TypeScript).
+<!-- screenshot: three notes (yellow, pink, blue) floating over an editor -->
 
-## Develop (NixOS / Nix)
+## Features
+
+- **Always on top.** Notes float above your windows. They're frameless and quiet, and you can place as many as you like.
+- **Markdown.** Write in Markdown and see it rendered. Click a `- [ ]` task to cross it off.
+- **One-click controls.** Click a note to show its dots: 🎨 color · ✏️ edit · 👁 hide · 📌 anchor.
+- **Anchor.** An anchored note stays put: no accidental drags or resizes.
+- **Move and resize.** Drag a note anywhere; resize it from its edges or bottom-right corner.
+- **Tray icon.** Search, show, hide and delete notes from one small manager window.
+- **Private by default.** Notes and your sync token are encrypted on disk with AES-256-GCM, using a key kept
+  in your OS keyring.
+- **Self-hosted sync.** Pogo Pad runs on a home server, a Raspberry Pi or a VPS. With end-to-end
+  encryption turned on, the server only ever stores unreadable data.
+
+## Install
+
+| Platform | How |
+|---|---|
+| Ubuntu 24.04+, Debian 13+ | [Build from source](#build-from-source), or build a `.deb` with `wails3 task linux:create:deb` |
+| Ubuntu 22.04, Debian 12 | [GTK 3 build](#ubuntu-2204--debian-12) |
+| Fedora, Arch, NixOS | [Build from source](#build-from-source) |
+| Windows, macOS | Coming soon |
+| Android, iOS | Coming soon (a separate app, using the same Pogo Pad) |
+
+## Sync with Pogo Pad
+
+1. Start Pogo Pad on any machine your devices can reach:
+   ```sh
+   docker compose up -d
+   docker compose exec pogo-pad pogo-pad token create --name my-laptop
+   ```
+2. In Pogo, go to the tray icon → **Manage notes…** → **Sync**. Enter the server's IP address or hostname,
+   its port and the token, then click **Test connection**, tick **Enable sync** and click **Save**.
+3. Optional: set an **end-to-end passphrase** under *End-to-end encryption*, and enter the same one on
+   your other devices.
+
+Only note text and color sync. Where a note sits on your screen, its size, and whether it's anchored or
+hidden stay on each device.
+
+## Privacy, in short
+
+- **On your computer:** notes and your sync token are encrypted. The key lives in your OS keyring
+  (GNOME Keyring, KWallet, macOS Keychain or Windows Credential Manager). If no keyring is available,
+  it's kept in a file only you can read.
+- **On Pogo Pad without E2E:** the server can read note text. Put it behind HTTPS if it's reachable
+  outside your home network.
+- **On Pogo Pad with E2E:** notes are encrypted before they leave your device, with a key derived
+  from your passphrase (Argon2id). If you lose the passphrase, the notes on the server can't be recovered.
+  Your local copies are unaffected.
+
+## Build from source
+
+You need **Go 1.26+** (from go.dev, not apt), **Node 20+** and the Wails 3 CLI:
 
 ```sh
-nix develop                     # go, node, gtk4, webkitgtk 6, pkg-config
 go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.26
-wails3 dev                      # hot reload
-wails3 build                    # → bin/notes-desktop
-go test ./... && (cd frontend && npm test)
 ```
 
-The Go tests include an end-to-end sync test. It builds and runs `../server`, so keep both repos side by side in `notes_app/`.
-
-`nix develop .#gtk3` is a GTK 3 / WebKit2GTK 4.1 shell for building the Ubuntu 22.04 variant (see below).
-
-## Ubuntu (and other distros)
-
-The app needs **Go 1.26+** (from go.dev, not apt) and **Node 20+** (e.g. NodeSource or nvm).
-
-**Ubuntu 24.04 and newer** (GTK 4, the default build):
+### Ubuntu 24.04+ (GTK 4, the default build)
 
 ```sh
 sudo apt install build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev
-go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.26
-wails3 build                         # → bin/notes-desktop
+wails3 build                         # → bin/pogo
 wails3 task linux:create:deb         # → bin/*.deb (optional)
 ```
 
-**Ubuntu 22.04 / Debian 12** (no WebKitGTK 6.0, so build the GTK 3 variant):
+### Ubuntu 22.04 / Debian 12
+
+These don't have WebKitGTK 6.0, so build the GTK 3 variant:
 
 ```sh
 sudo apt install build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev
 wails3 build EXTRA_TAGS=gtk3
-wails3 task linux:create:deb:gtk3    # deb that depends on GTK 3 packages
+wails3 task linux:create:deb:gtk3    # .deb that depends on the GTK 3 packages
 ```
 
-Wails plans to drop GTK 3 in v3.1, so the 22.04 build only works while this project stays on Wails 3.0.x.
+Wails plans to drop GTK 3 in v3.1, so the 22.04 build only works while Pogo stays on Wails 3.0.x.
 
-**What to expect on Ubuntu:**
-- **Tray icon:** it shows up, because Ubuntu turns on its AppIndicator extension by default. Plain GNOME needs the "AppIndicator and KStatusNotifierItem Support" extension.
-- **Staying on top:** GNOME on Wayland doesn't let apps keep windows on top or pick their position. So on any Wayland desktop other than niri, the app automatically runs through Xwayland, where both work. Text may look slightly soft with fractional scaling; set `NOTES_NATIVE_WAYLAND=1` to use native Wayland instead (notes then act as normal windows).
-- **"Ubuntu on Xorg" session:** everything works natively.
+### Nix
 
-Other distros: install the GTK 4 and WebKitGTK 6.0 development packages (e.g. `gtk4-devel webkitgtk6.0-devel` on Fedora) and run `wails3 doctor`.
+```sh
+nix develop            # GTK 4 shell
+nix develop .#gtk3     # GTK 3 shell for the 22.04 variant
+wails3 build
+```
 
-### Useful environment variables
+### Other distros
 
-| Variable | Purpose |
+Install the GTK 4 and WebKitGTK 6.0 development packages (e.g. `gtk4-devel webkitgtk6.0-devel` on Fedora)
+and run `wails3 doctor`.
+
+## Linux desktops
+
+Wayland doesn't let apps keep their windows on top or choose where they go, so Pogo adapts:
+
+| Desktop | Notes stay on top | Position remembered |
+|---|---|---|
+| niri | ✅ floating layer, above tiled windows (via niri IPC) | ✅ |
+| GNOME, KDE and other Wayland desktops | ✅ via Xwayland | ✅ |
+| Any X11 session, including "Ubuntu on Xorg" | ✅ | ✅ |
+
+- **Xwayland:** text may look slightly soft with fractional scaling. Set `POGO_NATIVE_WAYLAND=1` to
+  use native Wayland instead; notes then act as normal windows.
+- **Tray icon:** Ubuntu shows it out of the box. Plain GNOME needs the "AppIndicator and KStatusNotifierItem
+  Support" extension, and niri needs a bar with a tray, such as waybar's `tray` module.
+- **niri:** a note stays on the workspace it was opened on, and may flash in the tiled layout for a
+  split second before it floats. This optional rule for `~/.config/niri/config.kdl` removes the focus
+  ring and border from notes:
+
+  ```kdl
+  window-rule {
+      match app-id=r#"^org\.wails\.pogo$"# title="^Pogo note "
+      focus-ring { off; }
+      border { off; }
+      shadow { on; }
+  }
+  ```
+
+## Development
+
+```sh
+nix develop
+wails3 dev                                  # hot reload
+go test ./... && (cd frontend && npm test)
+```
+
+The Go tests include an end-to-end sync test that builds and runs Pogo Pad. It looks for the server
+repo next to this one, as `../server` or `../pogo_pad`, and is skipped if neither exists.
+
+| Environment variable | Purpose |
 |---|---|
-| `NOTES_DATA_DIR` | Use a different data directory (default `~/.config/notes-desktop`). Each directory is its own instance, which is handy for testing sync between two "devices" on one machine. |
-| `NOTES_NATIVE_WAYLAND=1` | Don't switch to Xwayland on non-niri Wayland desktops. |
+| `POGO_DATA_DIR` | Use a different data folder (default `~/.config/pogo`). Each folder is a separate instance, which is handy for testing sync between two "devices" on one machine. |
+| `POGO_NATIVE_WAYLAND=1` | Don't switch to Xwayland on Wayland desktops other than niri. |
 | `WEBKIT_DISABLE_DMABUF_RENDERER=1` | Try this if windows render blank on some GPU drivers (set automatically on NVIDIA). |
 
-## How it works
+### Where things live
 
 | Piece | Where |
 |---|---|
 | Note windows (frameless, always on top), niri placement | `windows.go` |
-| Frontend API: create/edit/hide/anchor/delete | `notes.go` |
+| Xwayland fallback | `platform_linux.go` |
+| Frontend API: create, edit, hide, anchor, delete | `notes.go` |
 | Sync loop, E2E encode/decode | `sync.go` |
 | Sync settings, test connection, E2E on/off | `settings.go` |
 | Encrypted local SQLite store | `internal/store` |
 | Keyring key, AES-GCM, Argon2id | `internal/secure` |
 | niri IPC client | `internal/niri` |
-| Note UI, Markdown/task rendering, manager UI | `frontend/src/NoteView.svelte`, `frontend/src/lib/markdown.ts`, `frontend/src/Manager.svelte` |
+| Note UI, Markdown and tasks, manager UI | `frontend/src/NoteView.svelte`, `frontend/src/lib/markdown.ts`, `frontend/src/Manager.svelte` |
 
-Only `content` and `color` sync. Position, size, anchored and hidden stay local to each device.
-
-## Linux / Wayland notes
-
-Wayland doesn't let apps keep their windows on top or choose where they go:
-- **niri:** the app talks to niri's IPC socket. Notes go on the floating layer, which sits above tiled windows. Their positions are restored and saved when you drag them.
-- **Other Wayland desktops (GNOME, KDE, …):** the app runs through Xwayland, where always-on-top and positioning work (see `platform_linux.go`).
-- **X11 sessions:** the normal always-on-top and move calls are used.
-
-Notes are resized by dragging their edges or bottom-right corner, using the compositor's native resize. Anchoring a note locks both moving and resizing.
-
-Optional niri window rule to remove the focus ring and border from notes (add it to `~/.config/niri/config.kdl`):
-
-```kdl
-window-rule {
-    match app-id=r#"^org\.wails\.sticky_notes$"# title="^Sticky note "
-    focus-ring { off; }
-    border { off; }
-    shadow { on; }
-}
-```
-
-Limitations on niri:
-- Floating windows belong to one workspace, so a note stays on the workspace it was opened on.
-- A note may flash in the tiled layout for a split second before it floats.
-
-The tray icon needs a StatusNotifierItem host, e.g. waybar's `tray` module.
-
-## Sync setup
-
-1. On the server: `notes-server token create --name my-laptop`
-2. Tray → **Manage notes…** → **Sync**: enter the host/IP, port and token → **Test connection** → tick **Enable sync** → **Save**.
-3. Optional: under *End-to-end encryption*, set a passphrase. Enter the same passphrase on your other devices.
+The sync protocol is documented in Pogo Pad's [API.md](https://github.com/dvher/pogo_pad/blob/master/API.md).

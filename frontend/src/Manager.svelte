@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { Events } from '@wailsio/runtime'
-  import { NoteService, SettingsService, SyncService } from '../bindings/notes-desktop'
-  import type { Settings, SyncStatus } from '../bindings/notes-desktop'
-  import type { Note } from '../bindings/notes-desktop/internal/store/models'
+  import { NoteService, SettingsService, SyncService } from '../bindings/github.com/dvher/pogo'
+  import type { Settings, SyncStatus } from '../bindings/github.com/dvher/pogo'
+  import type { Note } from '../bindings/github.com/dvher/pogo/internal/store/models'
   import { colorOf } from './lib/colors'
   import { titleOf } from './lib/markdown'
 
@@ -112,7 +112,7 @@
   <header>
     <h1>
       <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 6h48v38L42 58H8z" fill="#ffd740" stroke="#8d6e00" stroke-width="4" stroke-linejoin="round" /></svg>
-      Sticky Notes
+      Pogo
     </h1>
     <nav>
       <button class:active={tab === 'notes'} onclick={() => (tab = 'notes')}>Notes <span class="count">{notes.length}</span></button>
@@ -166,8 +166,8 @@
       <div class="card">
         <h2>Server</h2>
         <p class="hint">
-          Point the app at your self-hosted <code>notes-server</code>. On the server, run
-          <code>notes-server token create --name my-laptop</code> and paste the token below.
+          Point Pogo at your self-hosted <strong>Pogo Pad</strong>. On the server, run
+          <code>pogo-pad token create --name my-laptop</code> and paste the token below.
         </p>
         <div class="grid">
           <label>
@@ -189,7 +189,7 @@
         <label>
           API token
           <span class="row">
-            <input type={showToken ? 'text' : 'password'} placeholder="nts_…" bind:value={form.token} autocomplete="off" />
+            <input type={showToken ? 'text' : 'password'} placeholder="pogo_…" bind:value={form.token} autocomplete="off" />
             <button onclick={() => (showToken = !showToken)}>{showToken ? 'Hide' : 'Show'}</button>
           </span>
         </label>

@@ -1,4 +1,4 @@
-module notes-desktop
+module github.com/dvher/pogo
 
 go 1.26.0
 

@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=My Product
-Comment=A notes-desktop application
+Name=Pogo
+Comment=Markdown sticky notes that float above your windows
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/notes-desktop %u
+Exec=/usr/local/bin/pogo %u
 Terminal=false
 Type=Application
-Icon=notes-desktop
+Icon=pogo
 Categories=Utility;
-StartupWMClass=notes-desktop
+StartupWMClass=pogo
 
  

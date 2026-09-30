@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"notes-desktop/internal/secure"
-	"notes-desktop/internal/store"
-	"notes-desktop/internal/syncclient"
+	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/internal/syncclient"
 )
 
 // Settings is the Sync tab's form.
@@ -62,7 +62,7 @@ func normalize(in Settings) (Settings, error) {
 			return in, errors.New("enter the server's IP address or hostname")
 		}
 		if in.Token == "" {
-			return in, errors.New("enter the API token (run `notes-server token create --name <device>` on the server)")
+			return in, errors.New("enter the API token (run `pogo-pad token create --name <device>` on the server)")
 		}
 	}
 	return in, nil
@@ -112,16 +112,16 @@ func (s *SettingsService) TestConnection(in Settings) (string, error) {
 		return "", err
 	}
 	if in.Token == "" {
-		return fmt.Sprintf("Reached notes-server %s at %s. Add a token to sync.", version, base), nil
+		return fmt.Sprintf("Reached Pogo Pad %s at %s. Add a token to sync.", version, base), nil
 	}
 	_, err = c.GetE2E(ctx)
 	switch {
 	case errors.Is(err, syncclient.ErrNotFound):
-		return fmt.Sprintf("Connected to notes-server %s. Token OK. End-to-end encryption is off.", version), nil
+		return fmt.Sprintf("Connected to Pogo Pad %s. Token OK. End-to-end encryption is off.", version), nil
 	case err != nil:
 		return "", err
 	}
-	return fmt.Sprintf("Connected to notes-server %s. Token OK. Notes on this server are end-to-end encrypted.", version), nil
+	return fmt.Sprintf("Connected to Pogo Pad %s. Token OK. Notes on this server are end-to-end encrypted.", version), nil
 }
 
 // EnableE2E turns on end-to-end encryption with passphrase. If the server

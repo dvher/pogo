@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=notes-desktop
-Exec=notes-desktop
-Icon=notes-desktop
+Name=pogo
+Exec=pogo
+Icon=pogo
 Categories=Development;
 Terminal=false
 Keywords=wails

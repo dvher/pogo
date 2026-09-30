@@ -12,9 +12,9 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"notes-desktop/internal/secure"
-	"notes-desktop/internal/store"
-	"notes-desktop/internal/syncclient"
+	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/internal/store"
+	"github.com/dvher/pogo/internal/syncclient"
 )
 
 // Settings keys.

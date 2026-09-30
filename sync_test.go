@@ -13,21 +13,27 @@ import (
 	"testing"
 	"time"
 
-	"notes-desktop/internal/secure"
-	"notes-desktop/internal/store"
+	"github.com/dvher/pogo/internal/secure"
+	"github.com/dvher/pogo/internal/store"
 )
 
 // startServer builds and runs ../server and returns its port, a token and
 // the path of its database.
 func startServer(t *testing.T) (port, token, dbPath string) {
 	t.Helper()
-	serverDir, _ := filepath.Abs("../server")
-	if _, err := os.Stat(serverDir); err != nil {
-		t.Skip("server repo not found next to desktop repo")
+	var serverDir string
+	for _, dir := range []string{"../server", "../pogo_pad"} {
+		if _, err := os.Stat(filepath.Join(dir, "cmd", "pogo-pad")); err == nil {
+			serverDir, _ = filepath.Abs(dir)
+			break
+		}
+	}
+	if serverDir == "" {
+		t.Skip("Pogo Pad repo not found at ../server or ../pogo_pad")
 	}
 	dir := t.TempDir()
-	bin := filepath.Join(dir, "notes-server")
-	build := exec.Command("go", "build", "-o", bin, "./cmd/notes-server")
+	bin := filepath.Join(dir, "pogo-pad")
+	build := exec.Command("go", "build", "-o", bin, "./cmd/pogo-pad")
 	build.Dir = serverDir
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build server: %v\n%s", err, out)
@@ -234,7 +240,7 @@ func TestSyncEndToEnd(t *testing.T) {
 	}
 
 	// A bad token is reported clearly.
-	if _, err := a.settings.TestConnection(Settings{Host: "127.0.0.1", Port: port, Token: "nts_wrong"}); err == nil || !strings.Contains(err.Error(), "token") {
+	if _, err := a.settings.TestConnection(Settings{Host: "127.0.0.1", Port: port, Token: "pogo_wrong"}); err == nil || !strings.Contains(err.Error(), "token") {
 		t.Fatalf("bad token: %v", err)
 	}
 	if msg, err := a.settings.TestConnection(a.settings.Get()); err != nil || !strings.Contains(msg, "Token OK") {
