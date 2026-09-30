@@ -32,6 +32,9 @@ func startServer(t *testing.T) (port, token, dbPath string) {
 		}
 	}
 	if serverDir == "" {
+		if os.Getenv("CI") != "" {
+			t.Fatal("Pogo Pad repo not found at ../server or ../pogo_pad")
+		}
 		t.Skip("Pogo Pad repo not found at ../server or ../pogo_pad")
 	}
 	dir := t.TempDir()
@@ -71,7 +74,6 @@ type device struct {
 	store    *store.Store
 	sync     *SyncService
 	settings *SettingsService
-	notes    *NoteService
 }
 
 func newDevice(t *testing.T, name, port, token string) *device {

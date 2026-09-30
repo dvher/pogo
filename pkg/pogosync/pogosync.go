@@ -33,13 +33,15 @@ const (
 	keyE2EKey   = "e2e_key" // secret, hex
 	keyDeviceID = "device_id"
 
-	uploadBatch = 1000
-	nudgeDelay  = 2 * time.Second
+	nudgeDelay = 2 * time.Second
 
 	// MinInterval and DefaultInterval are sync periods in seconds.
 	MinInterval     = 10
 	DefaultInterval = 30
 )
+
+// uploadBatch is the most changes sent per sync request; tests lower it.
+var uploadBatch = 1000
 
 var (
 	// ErrLocked means the server uses end-to-end encryption and this device

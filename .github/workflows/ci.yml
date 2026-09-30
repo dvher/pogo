@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # pkg/ is pure Go and shared with Pogo Pocket, so it is tested on its own,
+  # with both SQLite drivers, and built for the phone targets.
+  pkg:
+    name: Shared packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l $(git ls-files '*.go' | grep -v '^build/'))
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt needed on: $unformatted"
+            exit 1
+          fi
+      - name: go mod tidy
+        run: go mod tidy -diff
+      - run: go vet ./pkg/...
+      - name: staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@latest ./pkg/...
+      - name: Test (modernc SQLite, desktop)
+        run: go test -race -count=1 -coverprofile=coverage.out ./pkg/...
+      - name: Test (WebAssembly SQLite, Android and iOS)
+        run: go test -race -count=1 -tags pogo_wasmsqlite ./pkg/...
+      - name: Build for Android and iOS
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          GOOS=android GOARCH=arm64 go build ./pkg/...
+          GOOS=ios GOARCH=arm64 go build ./pkg/...
+      - name: Coverage
+        run: go tool cover -func=coverage.out | tail -1 >> "$GITHUB_STEP_SUMMARY"
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+
+  linux:
+    name: Linux (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GTK 4
+            os: ubuntu-24.04
+            packages: libgtk-4-dev libwebkitgtk-6.0-dev
+            tags: ""
+          - name: GTK 3
+            os: ubuntu-22.04
+            packages: libgtk-3-dev libwebkit2gtk-4.1-dev
+            tags: gtk3
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: desktop
+      # sync_test.go runs a real Pogo Pad built from ../server.
+      - uses: actions/checkout@v5
+        with:
+          repository: dvher/pogo_pad
+          path: server
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: desktop/go.mod
+          cache-dependency-path: |
+            desktop/go.sum
+            server/go.sum
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: desktop/frontend/package-lock.json
+      - name: Install GTK and WebKit
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ${{ matrix.packages }}
+      - name: Build the frontend
+        working-directory: desktop/frontend
+        run: npm ci && npm run build
+      - name: Bindings are up to date
+        if: matrix.tags == ''
+        working-directory: desktop
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v3)
+          wails3 generate bindings -clean=true -ts -i
+          if ! git diff --exit-code -- frontend/bindings; then
+            echo "::error::frontend/bindings is stale: run 'wails3 generate bindings -clean=true -ts -i' and commit"
+            exit 1
+          fi
+      - name: go vet
+        working-directory: desktop
+        run: go vet -tags "${{ matrix.tags }}" $(go list ./... | grep -v /build/)
+      - name: staticcheck
+        working-directory: desktop
+        run: go run honnef.co/go/tools/cmd/staticcheck@latest -tags "${{ matrix.tags }}" $(go list ./... | grep -v /build/)
+      - name: Test (includes end-to-end sync with Pogo Pad)
+        working-directory: desktop
+        run: go test -race -count=1 -tags "${{ matrix.tags }}" . ./internal/...
+      - name: Build
+        working-directory: desktop
+        run: go build -tags "${{ matrix.tags }}" -trimpath -o pogo .
+
+  windows:
+    name: Windows (cross-compiled)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Stub the frontend build
+        run: mkdir -p frontend/dist && echo '<!doctype html>' > frontend/dist/index.html
+      - name: Build
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: |
+          go vet $(go list ./... | grep -v /build/)
+          go build -trimpath -o pogo.exe .
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Stub the frontend build
+        run: mkdir -p frontend/dist && echo '<!doctype html>' > frontend/dist/index.html
+      - run: go vet $(go list ./... | grep -v /build/)
+      - run: go build -trimpath -o pogo .
+      - run: go test -count=1 ./pkg/... ./internal/...
