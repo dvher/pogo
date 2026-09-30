@@ -103,6 +103,7 @@ func (wm *WindowManager) Open(n store.Note) {
 		MinHeight:        90,
 		Frameless:        true,
 		AlwaysOnTop:      true,
+		DisableResize:    n.Anchored,
 		BackgroundColour: application.NewRGB(rgb[0], rgb[1], rgb[2]),
 		Windows:          application.WindowsWindow{HiddenOnTaskbar: true},
 		Linux:            application.LinuxWindow{WindowDidMoveDebounceMS: 300},
@@ -256,28 +257,15 @@ func (wm *WindowManager) IsOpen(id string) bool {
 	return ok
 }
 
-// Resize sets a note window's size (used by the resize grip, since frameless
-// windows have no native resize border). GTK4 cannot resize a mapped window
-// on Wayland, so on niri this goes through the compositor.
-func (wm *WindowManager) Resize(id string, width, height int) {
+// SetAnchored locks or unlocks resizing of a note's window. Dragging is
+// controlled by the frontend.
+func (wm *WindowManager) SetAnchored(id string, anchored bool) {
 	wm.mu.Lock()
 	w, ok := wm.windows[id]
-	var niriID uint64
-	for nid, noteID := range wm.niriIDs {
-		if noteID == id {
-			niriID = nid
-		}
-	}
 	wm.mu.Unlock()
-	if !ok {
-		return
+	if ok {
+		w.SetResizable(!anchored)
 	}
-	if niriID != 0 {
-		niri.SetSize(niriID, width, height)
-	} else {
-		w.SetSize(width, height)
-	}
-	wm.store.SetSize(id, width, height)
 }
 
 func abs(v int) int {

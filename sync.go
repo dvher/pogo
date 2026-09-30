@@ -28,6 +28,7 @@ const (
 	keyCursor     = "sync_cursor"
 	keyE2EKey     = "e2e_key" // secret, hex
 	keyDeviceID   = "device_id"
+	keyWelcomed   = "welcomed"
 	uploadBatch   = 1000
 	nudgeDelay    = 2 * time.Second
 	minInterval   = 10

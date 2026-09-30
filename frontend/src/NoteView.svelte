@@ -87,26 +87,6 @@
   async function toggleAnchor() {
     if (note) note = await NoteService.SetAnchored(id, !note.anchored)
   }
-
-  // Resize grip: frameless windows have no border to grab, especially on Wayland.
-  let resize: { dx: number; dy: number } | null = null
-  let frame = 0
-  function gripDown(ev: PointerEvent) {
-    ev.stopPropagation()
-    ev.preventDefault()
-    ;(ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId)
-    resize = { dx: window.innerWidth - ev.clientX, dy: window.innerHeight - ev.clientY }
-  }
-  function gripMove(ev: PointerEvent) {
-    if (!resize) return
-    const w = Math.max(140, Math.round(ev.clientX + resize.dx))
-    const h = Math.max(90, Math.round(ev.clientY + resize.dy))
-    cancelAnimationFrame(frame)
-    frame = requestAnimationFrame(() => NoteService.Resize(id, w, h))
-  }
-  function gripUp() {
-    resize = null
-  }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -170,7 +150,9 @@
   {#if error}<div class="error">{error}</div>{/if}
 
   {#if !note?.anchored && !editing}
-    <div class="grip" title="Resize" onpointerdown={gripDown} onpointermove={gripMove} onpointerup={gripUp}></div>
+    <!-- Visual hint only: the Wails runtime resizes frameless windows natively
+         from their edges and corners (disabled while anchored). -->
+    <div class="grip"></div>
   {/if}
 </div>
 
@@ -348,8 +330,7 @@
     bottom: 0;
     width: 16px;
     height: 16px;
-    cursor: nwse-resize;
-    --wails-draggable: no-drag;
+    pointer-events: none;
     background: linear-gradient(135deg, transparent 55%, var(--accent) 55%, var(--accent) 62%, transparent 62%, transparent 75%, var(--accent) 75%, var(--accent) 82%, transparent 82%);
     opacity: 0;
     transition: opacity 0.15s;

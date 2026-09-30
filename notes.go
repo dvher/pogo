@@ -81,6 +81,7 @@ func (s *NoteService) SetAnchored(id string, anchored bool) (store.Note, error) 
 	if err := s.store.SetAnchored(id, anchored); err != nil {
 		return store.Note{}, err
 	}
+	s.windows.SetAnchored(id, anchored)
 	n, err := s.store.Get(id)
 	if err == nil {
 		s.app.Event.Emit(EventNoteChanged, n)
@@ -142,11 +143,6 @@ func (s *NoteService) Delete(id string) error {
 	s.windows.Close(id)
 	s.changed(n, true)
 	return nil
-}
-
-// Resize sets a note window's size from the frontend resize grip.
-func (s *NoteService) Resize(id string, width, height int) {
-	s.windows.Resize(id, max(width, 140), max(height, 90))
 }
 
 // OpenManager shows the note manager window.

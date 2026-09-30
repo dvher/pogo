@@ -55,13 +55,6 @@ export function OpenManager(): $CancellablePromise<void> {
 }
 
 /**
- * Resize sets a note window's size from the frontend resize grip.
- */
-export function Resize(id: string, width: number, height: number): $CancellablePromise<void> {
-    return $Call.ByID(388305341, id, width, height);
-}
-
-/**
  * SetAnchored locks or unlocks a note in place.
  */
 export function SetAnchored(id: string, anchored: boolean): $CancellablePromise<store$0.Note> {

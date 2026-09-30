@@ -26,6 +26,8 @@ var trayIcon []byte
 var appIcon []byte
 
 func main() {
+	restoreEnv := chooseGDKBackend()
+
 	dataDir, err := store.DefaultDataDir()
 	if err != nil {
 		log.Fatal(err)
@@ -105,11 +107,18 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		// GTK has opened its display by now; don't pass GDK_BACKEND on to
+		// programs we launch, such as the browser for links.
+		restoreEnv()
 		windows.Start()
-		if list, _ := st.List(); len(list) == 0 {
-			// First run: create a welcome note so there is something on screen.
-			if n, err := notes.Create(); err == nil {
-				notes.SetContent(n.ID, welcomeNote)
+		// First run: create a welcome note so there is something on screen.
+		// The emptiness check skips it for databases from before the flag.
+		if st.Setting(keyWelcomed, "") == "" {
+			st.SetSetting(keyWelcomed, "1")
+			if st.Empty() {
+				if n, err := notes.Create(); err == nil {
+					notes.SetContent(n.ID, welcomeNote)
+				}
 			}
 		}
 		go syncSvc.Loop(ctx)

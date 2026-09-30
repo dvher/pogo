@@ -134,6 +134,15 @@ tasks:
       - task: generate:dotdesktop
       - task: generate:deb
 
+  create:deb:gtk3:
+    summary: Creates a deb package of the GTK 3 build (Ubuntu 22.04, Debian 12)
+    cmds:
+      - task: build
+        vars:
+          EXTRA_TAGS: gtk3
+      - task: generate:dotdesktop
+      - wails3 tool package -name "{{.APP_NAME}}" -format deb -config ./build/linux/nfpm/nfpm-gtk3.yaml -out {{.ROOT_DIR}}/bin
+
   create:rpm:
     summary: Creates a rpm package
     deps:

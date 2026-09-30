@@ -124,6 +124,13 @@ func (s *Store) List() ([]Note, error) {
 	return s.query(`SELECT ` + cols + ` FROM notes WHERE deleted = 0 ORDER BY created_at`)
 }
 
+// Empty reports whether the database has never held a note (deleted ones count).
+func (s *Store) Empty() bool {
+	var n int
+	s.db.QueryRow(`SELECT COUNT(*) FROM notes`).Scan(&n)
+	return n == 0
+}
+
 // Dirty returns notes (including deletions) with unsynced edits.
 func (s *Store) Dirty() ([]Note, error) {
 	return s.query(`SELECT ` + cols + ` FROM notes WHERE dirty = 1`)

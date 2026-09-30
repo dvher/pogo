@@ -1,4 +1,4 @@
-//go:build linux && cgo
+//go:build linux && cgo && !gtk3
 
 // Package gtktitle sets a GTK window's title. Wails skips titles on frameless
 // windows, but on niri we need a unique title to find each note's window.
