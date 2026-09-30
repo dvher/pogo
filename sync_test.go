@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite" // reads the server's database
+
 	"github.com/dvher/pogo/pkg/pogosync"
 	"github.com/dvher/pogo/pkg/secure"
 	"github.com/dvher/pogo/pkg/store"

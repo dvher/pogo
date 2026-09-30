@@ -30,7 +30,8 @@ with optional end-to-end encryption.
 | Ubuntu 22.04, Debian 12 | [GTK 3 build](#ubuntu-2204--debian-12) |
 | Fedora, Arch, NixOS | [Build from source](#build-from-source) |
 | Windows, macOS | Coming soon |
-| Android, iOS | Coming soon (a separate app, using the same Pogo Pad) |
+| Android | [Pogo Pocket](https://github.com/dvher/pogo_pocket), a home-screen widget that syncs through the same Pogo Pad |
+| iOS | Planned (Pogo Pocket) |
 
 ## Sync with Pogo Pad
 

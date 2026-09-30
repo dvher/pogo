@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/dvher/pogo/pkg/secure"
 )
 
@@ -85,7 +83,7 @@ func Open(dir string, c *secure.Cipher) (*Store, error) {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("sqlite", filepath.Join(dir, "notes.db")+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)")
+	db, err := sql.Open(driverName, dsn(filepath.Join(dir, "notes.db"))+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)")
 	if err != nil {
 		return nil, err
 	}
