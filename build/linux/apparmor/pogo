@@ -1,0 +1,14 @@
+# Ubuntu 23.10+ blocks unprivileged user namespaces unless an AppArmor
+# profile allows them. WebKitGTK sandboxes its web processes with bwrap, which
+# needs one, so without this Pogo aborts on start with
+# "bwrap: setting up uid map: Permission denied".
+# Same approach as the profiles Ubuntu ships for Chrome and VS Code.
+
+abi <abi/4.0>,
+include <tunables/global>
+
+profile pogo /usr/local/bin/pogo flags=(unconfined) {
+  userns,
+
+  include if exists <local/pogo>
+}
