@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
@@ -49,16 +50,20 @@ func (s *SyncService) emit(name string, data ...any) {
 
 func (s *SyncService) applied(changes []pogosync.Applied) {
 	for _, c := range changes {
+		// Notes from other devices start hidden; the user shows them from
+		// the manager.
+		if c.Created {
+			if err := s.store.SetHidden(c.ID, true); err != nil {
+				slog.Error("hide synced note", "note", c.ID, "error", err)
+			}
+		}
 		n, err := s.store.Get(c.ID)
 		if err != nil || s.windows == nil {
 			continue
 		}
-		switch {
-		case n.Deleted:
+		if n.Deleted {
 			s.windows.Close(c.ID)
-		case c.Created && !n.Hidden:
-			s.windows.Open(n)
-		default:
+		} else {
 			s.emit(EventNoteChanged, n)
 		}
 	}
