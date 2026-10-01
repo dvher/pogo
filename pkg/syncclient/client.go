@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -69,7 +70,13 @@ func BaseURL(scheme, host, port string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if u.Scheme != "http" && u.Scheme != "https" {
+			return "", fmt.Errorf("unsupported scheme %q: use http or https", u.Scheme)
+		}
 		scheme, host = u.Scheme, u.Host
+	}
+	if ip := net.ParseIP(host); ip != nil && ip.To4() == nil {
+		host = "[" + host + "]" // IPv6 literal
 	}
 	if port = strings.TrimSpace(port); port != "" {
 		host = host + ":" + port

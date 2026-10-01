@@ -24,6 +24,17 @@ describe('task lists', () => {
     expect(toggleTask(src, 6)).toBe(src) // not a task
   })
 
+  it('toggles tasks in quotes and keeps CRLF line endings', () => {
+    expect(toggleTask('> - [ ] quoted', 0)).toBe('> - [x] quoted')
+    expect(toggleTask('* [X] star', 0)).toBe('* [ ] star')
+    expect(toggleTask('- [ ] a\r\n- [ ] b', 1)).toBe('- [ ] a\r\n- [x] b')
+  })
+
+  it('ignores lines that do not exist', () => {
+    expect(toggleTask(src, -1)).toBe(src)
+    expect(toggleTask(src, 99)).toBe(src)
+  })
+
   it('does not treat brackets mid-text as tasks', () => {
     const div = document.createElement('div')
     div.innerHTML = render('- see [ ] later')
