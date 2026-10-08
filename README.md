@@ -47,6 +47,8 @@ with optional end-to-end encryption.
 
 Only note text and color sync. Where a note sits on your screen, its size, and whether it's anchored or
 hidden stay on each device.
+Notes that arrive from another device start hidden: show them from **Manage notes…** when you want them
+on screen.
 
 ## Privacy, in short
 

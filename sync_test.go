@@ -161,6 +161,12 @@ func TestSyncEndToEnd(t *testing.T) {
 	if n, _ := b.store.Get("n1"); n.Color != "pink" {
 		t.Fatalf("color not synced: %q", n.Color)
 	}
+	if n, _ := b.store.Get("n1"); !n.Hidden {
+		t.Fatal("note from another device should start hidden")
+	}
+	if n, _ := a.store.Get("n1"); n.Hidden {
+		t.Fatal("note created locally should not be hidden")
+	}
 
 	// Edit on B, appears on A.
 	b.edit(t, "n1", "- [x] milk")
