@@ -27,6 +27,7 @@ var trayIcon []byte
 var appIcon []byte
 
 func main() {
+	checkWebKitSandbox()
 	restoreEnv := chooseGDKBackend()
 
 	dataDir, err := store.DefaultDataDir()

@@ -22,6 +22,11 @@ contents:
     dst: "/usr/share/icons/hicolor/128x128/apps/pogo.png"
   - src: "./build/linux/pogo.desktop"
     dst: "/usr/share/applications/pogo.desktop"
+  # Lets WebKit's bwrap sandbox create a user namespace on Ubuntu 24.04+
+  - src: "./build/linux/apparmor/pogo"
+    dst: "/etc/apparmor.d/pogo"
+    type: config
+    packager: deb
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
 depends:

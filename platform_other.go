@@ -3,3 +3,5 @@
 package main
 
 func chooseGDKBackend() (restore func()) { return func() {} }
+
+func checkWebKitSandbox() {}

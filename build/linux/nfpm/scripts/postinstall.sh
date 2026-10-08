@@ -18,4 +18,12 @@ else
   echo "Warning: update-mime-database command not found. Custom URL schemes may not be immediately recognized." >&2
 fi
 
+# Load the AppArmor profile that lets WebKit's sandbox run (Ubuntu 24.04+)
+if [ -f /etc/apparmor.d/pogo ] && command -v apparmor_parser >/dev/null 2>&1 \
+  && [ -d /sys/kernel/security/apparmor ]; then
+  echo "Loading AppArmor profile..."
+  apparmor_parser -r -T -W /etc/apparmor.d/pogo || \
+    echo "Warning: could not load /etc/apparmor.d/pogo; Pogo may fail to start." >&2
+fi
+
 exit 0
