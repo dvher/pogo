@@ -104,9 +104,32 @@ tasks:
       FORMAT: '{{.FORMAT | default "nsis"}}'
       INSTALL_SCOPE: '{{.INSTALL_SCOPE | default "machine"}}'
 
+  update:assets:
+    summary: Regenerates the Windows metadata (info.json, manifest, NSIS defines) from build/config.yml
+    desc: |
+      `wails3 update build-assets` rewrites every platform's files, which would
+      drop hand edits such as the AppArmor entry in build/linux/nfpm/nfpm.yaml.
+      This renders into a temp dir and copies back only the Windows files.
+    dir: build
+    cmds:
+      - |
+        tmp=$(mktemp -d)
+        trap 'rm -rf "$tmp"' EXIT
+        wails3 update build-assets -name "{{.APP_NAME}}" -binaryname "{{.APP_NAME}}" -config config.yml -dir "$tmp"
+        cp "$tmp/windows/info.json" "$tmp/windows/wails.exe.manifest" windows/
+        cp "$tmp/windows/nsis/wails_tools.nsh" windows/nsis/
+    sources:
+      - config.yml
+    generates:
+      - windows/info.json
+      - windows/wails.exe.manifest
+      - windows/nsis/wails_tools.nsh
+
   generate:syso:
     summary: Generates Windows `.syso` file
     dir: build
+    deps:
+      - task: update:assets
     cmds:
       - wails3 generate syso -arch {{.ARCH}} -icon windows/icon.ico -manifest windows/wails.exe.manifest -info windows/info.json -out ../wails_windows_{{.ARCH}}.syso
     vars:

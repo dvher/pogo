@@ -29,7 +29,8 @@ with optional end-to-end encryption.
 | Ubuntu 24.04+, Debian 13+ | [Build from source](#build-from-source), or build a `.deb` with `wails3 task linux:create:deb` |
 | Ubuntu 22.04, Debian 12 | [GTK 3 build](#ubuntu-2204--debian-12) |
 | Fedora, Arch, NixOS | [Build from source](#build-from-source) |
-| Windows, macOS | Coming soon |
+| Windows | Experimental: [build an installer](#windows) |
+| macOS | Coming soon |
 | Android | [Pogo Pocket](https://github.com/dvher/pogo_pocket), a home-screen widget that syncs through the same Pogo Pad |
 | iOS | Planned (Pogo Pocket) |
 
@@ -106,6 +107,20 @@ wails3 build
 
 Install the GTK 4 and WebKitGTK 6.0 development packages (e.g. `gtk4-devel webkitgtk6.0-devel` on Fedora)
 and run `wails3 doctor`.
+
+### Windows
+
+Pogo cross-compiles to Windows from Linux without a C toolchain. You need NSIS for the installer (it's in
+the Nix shell; `sudo apt install nsis` elsewhere):
+
+```sh
+wails3 task windows:package ARCH=amd64   # → bin/pogo.exe and bin/pogo-amd64-installer.exe
+```
+
+The installer isn't signed yet, so SmartScreen asks for confirmation. Windows metadata (name, version,
+installer defines) is regenerated from `build/config.yml` on every build. Don't run
+`wails3 task common:update:build-assets`: it also rewrites the Linux packaging and drops the AppArmor
+profile from the `.deb`.
 
 ## Linux desktops
 
