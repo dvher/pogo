@@ -17,6 +17,7 @@
           libsoup_3
           glib-networking
           gsettings-desktop-schemas
+          nsis # Windows installer: `wails3 task windows:package`
         ];
         shellHook = ''
           export PATH="$HOME/go/bin:$PATH"
