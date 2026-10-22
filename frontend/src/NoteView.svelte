@@ -3,7 +3,7 @@
   import { Browser, Events } from '@wailsio/runtime'
   import { NoteService } from '../bindings/github.com/dvher/pogo'
   import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
-  import { colorNames, colorOf, hslHex, isCustom, toHSL } from './lib/colors'
+  import { colorNames, colorOf, hslHex, isCustom, isDark, parseHex, toHSL } from './lib/colors'
   import { render, toggleTask } from './lib/markdown'
 
   let { id }: { id: string } = $props()
@@ -102,7 +102,7 @@
     showPicker = !showPicker
     if (!showPicker) return
     const bg = colorOf(note?.color ?? 'yellow').bg
-    const [h, sl, l] = toHSL([1, 3, 5].map((i) => parseInt(bg.slice(i, i + 2), 16)) as [number, number, number])
+    const [h, sl, l] = toHSL(parseHex(bg))
     const v = l + sl * Math.min(l, 1 - l)
     hsv = { h, s: v === 0 ? 0 : 2 * (1 - l / v), v }
     hexInput = bg
@@ -144,6 +144,7 @@
   class="note"
   class:anchored={note?.anchored}
   class:editing
+  class:dark={isDark(color)}
   style:--bg={color.bg}
   style:--ink={color.ink}
   style:--accent={color.accent}
@@ -324,6 +325,10 @@
   }
   .content :global(hr) { border: none; border-top: 1px solid var(--accent); }
 
+  /* Dark custom colors: native controls and the editor follow suit. */
+  .note.dark { color-scheme: dark; }
+  .note.dark textarea { background: rgb(0 0 0 / 0.25); }
+
   textarea {
     flex: 1;
     resize: none;
@@ -355,7 +360,8 @@
     place-items: center;
     padding: 0;
     cursor: pointer;
-    color: var(--ink);
+    /* The dots are white whatever the note's color, so their icons are dark. */
+    color: #262626;
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
     animation: pop 0.12s ease-out;
   }

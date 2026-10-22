@@ -30,7 +30,7 @@ const toHex = (c: RGB) => '#' + c.map((v) => v.toString(16).padStart(2, '0')).jo
 
 // Mirrors Derive in pkg/palette/palette.go (checked by testdata/derive.json).
 export function derive(bg: string): Color {
-  const rgb: RGB = [1, 3, 5].map((i) => parseInt(bg.slice(i, i + 2), 16)) as RGB
+  const rgb = parseHex(bg)
   const [h, s, l] = toHSL(rgb)
   const lum = luminance(rgb)
   const dark = lum > 0.179
@@ -70,6 +70,11 @@ export function fromHSL(h: number, s: number, l: number): RGB {
 }
 
 export const hslHex = (h: number, s: number, l: number) => toHex(fromHSL(h, s, l))
+
+export const parseHex = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as RGB
+
+// Whether a color gets light text (the same test derive uses).
+export const isDark = (c: Color) => luminance(parseHex(c.bg)) <= 0.179
 
 function luminance(c: RGB) {
   const lin = (v: number) => {
