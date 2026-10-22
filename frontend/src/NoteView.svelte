@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte'
-  import { Browser, Events } from '@wailsio/runtime'
+  import { Browser, Clipboard, Events } from '@wailsio/runtime'
   import { NoteService } from '../bindings/github.com/dvher/pogo'
   import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
   import { colorNames, colorOf } from './lib/colors'
   import { render, toggleTask } from './lib/markdown'
+  import * as cmds from './lib/editing'
+  import type { Edit } from './lib/editing'
 
   let { id }: { id: string } = $props()
 
@@ -72,10 +74,84 @@
     if (note && draft !== note.content) save(draft)
   }
 
+  type Command = (text: string, s: number, e: number) => Edit | null
+
+  // Ctrl (or Cmd) shortcuts, keyed by lowercase key; Shift is part of the name.
+  const shortcuts: Record<string, Command> = {
+    b: (t, s, e) => cmds.wrap(t, s, e, '**'),
+    i: (t, s, e) => cmds.wrap(t, s, e, '*'),
+    e: (t, s, e) => cmds.wrap(t, s, e, '`'),
+    'shift+x': (t, s, e) => cmds.wrap(t, s, e, '~~'),
+    k: cmds.link,
+    l: cmds.toggleTask,
+  }
+
+  // Applies an edit through execCommand so it lands on the textarea's own
+  // undo stack (and fires input, which updates draft).
+  function apply(edit: Edit) {
+    const ta = textarea!
+    if (edit.from !== edit.to || edit.insert) {
+      ta.setSelectionRange(edit.from, edit.to)
+      const ok = edit.insert
+        ? document.execCommand('insertText', false, edit.insert)
+        : document.execCommand('delete')
+      if (!ok) {
+        ta.setRangeText(edit.insert)
+        ta.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+    }
+    ta.setSelectionRange(edit.selStart, edit.selEnd)
+  }
+
+  function run(ev: KeyboardEvent, cmd: Command): boolean {
+    const ta = textarea!
+    const edit = cmd(ta.value, ta.selectionStart, ta.selectionEnd)
+    if (!edit) return false
+    ev.preventDefault()
+    apply(edit)
+    return true
+  }
+
+  async function pasteChecklist() {
+    const clip = await Clipboard.Text().catch(() => '')
+    const ta = textarea
+    if (!ta || !clip) return
+    const edit = cmds.pasteChecklist(ta.value, ta.selectionStart, ta.selectionEnd, clip)
+    if (edit) apply(edit)
+  }
+
   function onEditKey(ev: KeyboardEvent) {
-    if (ev.key === 'Escape' || (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey))) {
+    if (ev.isComposing) return
+    const mod = ev.ctrlKey || ev.metaKey
+    if (ev.key === 'Escape' || (ev.key === 'Enter' && mod)) {
       ev.preventDefault()
       finishEdit()
+      return
+    }
+    if (mod && !ev.altKey) {
+      const name = (ev.shiftKey ? 'shift+' : '') + ev.key.toLowerCase()
+      if (name === 'shift+v') {
+        ev.preventDefault()
+        pasteChecklist()
+      } else if (shortcuts[name]) {
+        if (!run(ev, shortcuts[name])) ev.preventDefault()
+      }
+      return
+    }
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return
+    switch (ev.key) {
+      case 'Enter':
+        if (!ev.shiftKey) run(ev, cmds.continueList)
+        break
+      case 'Tab':
+        ev.preventDefault()
+        run(ev, ev.shiftKey ? cmds.outdent : cmds.tab)
+        break
+      case 'Backspace':
+        run(ev, cmds.unpair)
+        break
+      default:
+        if (ev.key.length === 1) run(ev, (t, s, e) => cmds.autopair(t, s, e, ev.key))
     }
   }
 
@@ -141,7 +217,7 @@
       onblur={finishEdit}
       onkeydown={onEditKey}
       spellcheck="false"
-      placeholder="Write Markdown…  (Esc or Ctrl+Enter to finish)"
+      placeholder="Write Markdown…  (Esc or Ctrl+Enter to finish)&#10;&#10;Ctrl+B bold · Ctrl+I italic · Ctrl+K link · Ctrl+L task&#10;Ctrl+E code · Ctrl+Shift+X strike · Ctrl+Shift+V paste as checklist"
     ></textarea>
   {:else}
     <div class="content">{@html html}</div>
