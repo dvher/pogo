@@ -3,7 +3,7 @@
   import { Browser, Events } from '@wailsio/runtime'
   import { NoteService } from '../bindings/github.com/dvher/pogo'
   import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
-  import { colorNames, colorOf } from './lib/colors'
+  import { colorNames, colorOf, hslHex, isCustom, toHSL } from './lib/colors'
   import { render, toggleTask } from './lib/markdown'
 
   let { id }: { id: string } = $props()
@@ -13,11 +13,17 @@
   let draft = $state('')
   let showDots = $state(false)
   let showPalette = $state(false)
+  let showPicker = $state(false)
+  // Custom color being picked, as HSV so the square maps to saturation and
+  // value; previewed live and saved when the pointer is released.
+  let hsv = $state({ h: 0, s: 0, v: 1 })
+  let preview = $state<string | null>(null)
+  let hexInput = $state('')
   let error = $state('')
   let textarea = $state<HTMLTextAreaElement>()
 
   let html = $derived(note ? render(note.content) : '')
-  let color = $derived(colorOf(note?.color ?? 'yellow'))
+  let color = $derived(colorOf(preview ?? note?.color ?? 'yellow'))
 
   onMount(() => {
     NoteService.Get(id).then((n) => (note = n)).catch((e) => (error = String(e)))
@@ -52,16 +58,17 @@
       save(toggleTask(note.content, Number(task.dataset.line)))
       return
     }
-    if (target.closest('.dots, .palette')) return
+    if (target.closest('.dots, .palette, .picker')) return
     showDots = !showDots
-    showPalette = false
+    showPalette = showPicker = false
+    preview = null
   }
 
   async function startEdit() {
     if (!note) return
     draft = note.content
     editing = true
-    showDots = showPalette = false
+    showDots = showPalette = showPicker = false
     await tick()
     textarea?.focus()
   }
@@ -80,8 +87,51 @@
   }
 
   async function setColor(name: string) {
-    showPalette = false
+    showPalette = showPicker = false
+    preview = null
     note = await NoteService.SetColor(id, name)
+  }
+
+  function hsvHex({ h, s, v }: typeof hsv) {
+    const l = v * (1 - s / 2)
+    const sl = l === 0 || l === 1 ? 0 : (v - l) / Math.min(l, 1 - l)
+    return hslHex(h, sl, l)
+  }
+
+  function openPicker() {
+    showPicker = !showPicker
+    if (!showPicker) return
+    const bg = colorOf(note?.color ?? 'yellow').bg
+    const [h, sl, l] = toHSL([1, 3, 5].map((i) => parseInt(bg.slice(i, i + 2), 16)) as [number, number, number])
+    const v = l + sl * Math.min(l, 1 - l)
+    hsv = { h, s: v === 0 ? 0 : 2 * (1 - l / v), v }
+    hexInput = bg
+  }
+
+  function pick(next: typeof hsv) {
+    hsv = next
+    preview = hexInput = hsvHex(next)
+  }
+
+  function onSquare(ev: PointerEvent) {
+    if (ev.type === 'pointerdown') (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId)
+    else if (!(ev.currentTarget as HTMLElement).hasPointerCapture(ev.pointerId)) return
+    const r = (ev.currentTarget as HTMLElement).getBoundingClientRect()
+    const clamp = (x: number) => Math.min(1, Math.max(0, x))
+    pick({ h: hsv.h, s: clamp((ev.clientX - r.left) / r.width), v: clamp(1 - (ev.clientY - r.top) / r.height) })
+  }
+
+  // Saves the previewed color but keeps the picker open for more tweaks.
+  async function commitPreview() {
+    const picked = preview
+    if (picked && picked !== note?.color) note = await NoteService.SetColor(id, picked)
+    if (preview === picked) preview = null
+  }
+
+  function onHex(ev: Event) {
+    const v = (ev.currentTarget as HTMLInputElement).value.trim().toLowerCase()
+    const hex = v.startsWith('#') ? v : '#' + v
+    if (isCustom(hex)) setColor(hex)
   }
 
   async function toggleAnchor() {
@@ -105,7 +155,7 @@
 
   {#if showDots && !editing}
     <div class="dots">
-      <button class="dot" title="Color" onclick={() => (showPalette = !showPalette)}>
+      <button class="dot" title="Color" onclick={() => ((showPalette = !showPalette), (showPicker = false), (preview = null))}>
         <span class="swatch"></span>
       </button>
       <button class="dot" title="Edit (Markdown)" onclick={startEdit}>
@@ -130,7 +180,46 @@
             onclick={() => setColor(name)}
           ></button>
         {/each}
+        <button
+          class="swatch-btn custom"
+          class:current={note && isCustom(note.color)}
+          title="Custom color"
+          aria-label="Custom color"
+          onclick={openPicker}
+        ></button>
       </div>
+      {#if showPicker}
+        <div class="picker">
+          <div
+            class="sv"
+            style:--hue={hsv.h}
+            onpointerdown={onSquare}
+            onpointermove={onSquare}
+            onpointerup={commitPreview}
+          >
+            <span class="knob" style:left="{hsv.s * 100}%" style:top="{(1 - hsv.v) * 100}%"></span>
+          </div>
+          <input
+            class="hue"
+            type="range"
+            min="0"
+            max="359"
+            value={Math.round(hsv.h)}
+            oninput={(ev) => pick({ ...hsv, h: Number(ev.currentTarget.value) })}
+            onchange={commitPreview}
+            aria-label="Hue"
+          />
+          <input
+            class="hex"
+            value={hexInput}
+            maxlength="7"
+            spellcheck="false"
+            aria-label="Hex color"
+            onchange={onHex}
+            onkeydown={(ev) => ev.key === 'Enter' && onHex(ev)}
+          />
+        </div>
+      {/if}
     {/if}
   {/if}
 
@@ -313,6 +402,68 @@
     cursor: pointer;
   }
   .swatch-btn.current { outline: 2px solid #333; outline-offset: 1px; }
+  .swatch-btn.custom {
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  }
+
+  .picker {
+    position: absolute;
+    top: 64px;
+    right: 8px;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 7px;
+    background: rgb(255 255 255 / 0.95);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+    z-index: 3;
+    --wails-draggable: no-drag;
+  }
+  .sv {
+    position: relative;
+    height: 90px;
+    border-radius: 6px;
+    cursor: crosshair;
+    touch-action: none;
+    background:
+      linear-gradient(to top, #000, transparent),
+      linear-gradient(to right, #fff, hsl(calc(var(--hue) * 1deg) 100% 50%));
+  }
+  .knob {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5);
+    pointer-events: none;
+  }
+  .hue {
+    appearance: none;
+    height: 10px;
+    margin: 0;
+    border-radius: 5px;
+    background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red);
+  }
+  .hue::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5);
+  }
+  .hex {
+    font: 12px ui-monospace, monospace;
+    padding: 3px 5px;
+    border: 1px solid rgb(0 0 0 / 0.25);
+    border-radius: 4px;
+    color: #222;
+    background: #fff;
+  }
 
   .pin-mark {
     position: absolute;
