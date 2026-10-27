@@ -17,6 +17,7 @@ with optional end-to-end encryption.
 - **Anchor.** An anchored note stays put: no accidental drags or resizes.
 - **Move and resize.** Drag a note anywhere; resize it from its edges or bottom-right corner.
 - **Tray icon.** Search, show, hide and delete notes from one small manager window.
+- **Start with the computer.** Turn it on under *General* in the manager (Linux and Windows).
 - **Private by default.** Notes and your sync token are encrypted on disk with AES-256-GCM, using a key kept
   in your OS keyring.
 - **Self-hosted sync.** Pogo Pad runs on a home server, a Raspberry Pi or a VPS. With end-to-end

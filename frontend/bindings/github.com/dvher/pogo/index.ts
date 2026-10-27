@@ -9,3 +9,7 @@ export {
     SettingsService,
     SyncService
 };
+
+export type {
+    Startup
+} from "./models.js";
