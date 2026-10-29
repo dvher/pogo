@@ -4,10 +4,11 @@
   import { NoteService, SettingsService, SyncService } from '../bindings/github.com/dvher/pogo'
   import type { Settings, Status as SyncStatus } from '../bindings/github.com/dvher/pogo/pkg/pogosync/models'
   import type { Note } from '../bindings/github.com/dvher/pogo/pkg/store/models'
+  import type { Startup } from '../bindings/github.com/dvher/pogo/models'
   import { colorOf } from './lib/colors'
   import { titleOf } from './lib/markdown'
 
-  let tab = $state<'notes' | 'sync'>('notes')
+  let tab = $state<'notes' | 'sync' | 'general'>('notes')
 
   // Notes tab
   let notes = $state<Note[]>([])
@@ -95,9 +96,26 @@
       return 'End-to-end encryption is off.'
     })
 
+  // General tab
+  let startup = $state<Startup>({ supported: false, enabled: false })
+  let startupError = $state('')
+
+  async function setStartup(enabled: boolean) {
+    startupError = ''
+    try {
+      startup = await SettingsService.SetStartup(enabled)
+    } catch (e) {
+      startupError = String(e).replace(/^Error:\s*/, '')
+      startup = await SettingsService.GetStartup().catch(() => startup)
+    }
+  }
+
   onMount(() => {
     loadNotes()
     SettingsService.Get().then((s) => (form = s))
+    SettingsService.GetStartup()
+      .then((s) => (startup = s))
+      .catch((e) => (startupError = String(e).replace(/^Error:\s*/, '')))
     SyncService.Status().then((s) => (status = s))
     const offs = [
       Events.On('notes:changed', loadNotes),
@@ -120,6 +138,7 @@
         Sync
         {#if status.enabled}<span class="led" class:bad={!!status.lastError} class:busy={status.syncing}></span>{/if}
       </button>
+      <button class:active={tab === 'general'} onclick={() => (tab = 'general')}>General</button>
     </nav>
   </header>
 
@@ -160,6 +179,24 @@
           </li>
         {/each}
       </ul>
+    </section>
+  {:else if tab === 'general'}
+    <section class="general">
+      <div class="card">
+        <h2>Startup</h2>
+        {#if startup.supported}
+          <label class="check">
+            <input type="checkbox" checked={startup.enabled} onchange={(e) => setStartup(e.currentTarget.checked)} />
+            Start Pogo with the computer
+          </label>
+          <p class="hint">Pogo opens your notes when you log in.</p>
+        {:else}
+          <p class="status">Starting with the computer isn't available on this system yet.</p>
+        {/if}
+        {#if startupError}
+          <p class="message">{startupError}</p>
+        {/if}
+      </div>
     </section>
   {:else}
     <section class="sync">

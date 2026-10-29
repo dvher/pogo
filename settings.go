@@ -1,8 +1,12 @@
 package main
 
-import "github.com/dvher/pogo/pkg/pogosync"
+import (
+	"github.com/dvher/pogo/internal/autostart"
+	"github.com/dvher/pogo/pkg/pogosync"
+)
 
-// SettingsService manages sync settings and end-to-end encryption.
+// SettingsService manages app settings: starting at login, sync and
+// end-to-end encryption.
 type SettingsService struct {
 	sync *SyncService
 }
@@ -28,3 +32,24 @@ func (s *SettingsService) EnableE2E(passphrase string) error {
 
 // DisableE2E turns off end-to-end encryption for every device on the server.
 func (s *SettingsService) DisableE2E() error { return s.sync.engine.DisableE2E() }
+
+// Startup says whether Pogo starts when the user logs in.
+type Startup struct {
+	Supported bool `json:"supported"`
+	Enabled   bool `json:"enabled"`
+}
+
+// GetStartup reports whether Pogo starts at login. It reads the OS entry, so
+// it reflects changes made outside Pogo.
+func (s *SettingsService) GetStartup() (Startup, error) {
+	on, err := autostart.Enabled()
+	return Startup{Supported: autostart.Supported(), Enabled: on}, err
+}
+
+// SetStartup makes Pogo start at login, or stops it from doing so.
+func (s *SettingsService) SetStartup(enabled bool) (Startup, error) {
+	if err := autostart.Set(enabled); err != nil {
+		return Startup{}, err
+	}
+	return s.GetStartup()
+}
