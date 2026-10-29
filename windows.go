@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -138,6 +139,36 @@ func (wm *WindowManager) Open(n store.Note) {
 			x, y := w.Position()
 			wm.store.SetPosition(id, x, y)
 		})
+		if runtime.GOOS == "linux" {
+			go wm.trackPosition(w, id, n)
+		}
+	}
+}
+
+// trackPosition polls a window's position and saves it when it changes. Wails'
+// GTK 4 backend never emits WindowDidMove, so without this notes on GNOME/KDE
+// (via Xwayland) never save their position and reopen centred.
+func (wm *WindowManager) trackPosition(w *application.WebviewWindow, id string, n store.Note) {
+	lastX, lastY := n.X, n.Y
+	if !n.Placed {
+		lastX, lastY = -1, -1
+	}
+	t := time.NewTicker(500 * time.Millisecond)
+	defer t.Stop()
+	for range t.C {
+		wm.mu.Lock()
+		open := wm.windows[id] == w
+		wm.mu.Unlock()
+		if !open || wm.quitting.Load() {
+			return
+		}
+		// (0, 0) means the window isn't mapped yet or the position is unknown.
+		x, y := w.Position()
+		if (x == 0 && y == 0) || (x == lastX && y == lastY) {
+			continue
+		}
+		lastX, lastY = x, y
+		wm.store.SetPosition(id, x, y)
 	}
 }
 
