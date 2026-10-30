@@ -94,6 +94,9 @@ func TestHTML(t *testing.T) {
 			t.Errorf("missing %q", want)
 		}
 	}
+	if out, _ := HTML(store.Note{Content: "---\ntags: [a]\n---\nbody"}); strings.Contains(string(out), "tags") {
+		t.Error("frontmatter rendered")
+	}
 	if strings.Contains(s, "<script>") {
 		t.Error("raw HTML rendered")
 	}

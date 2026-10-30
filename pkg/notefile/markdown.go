@@ -126,19 +126,26 @@ func unquote(s string) string {
 
 var titlePrefix = regexp.MustCompile(`^\s*(#+\s*|(?:[-*+]|\d+[.)])\s+)(\[[ xX]\]\s*)?`)
 
+// Body returns a note's content without a leading frontmatter block, such as
+// Obsidian properties kept by an import.
+func Body(src string) string {
+	src = strings.ReplaceAll(src, "\r\n", "\n")
+	if !strings.HasPrefix(src, "---\n") {
+		return src
+	}
+	lines := strings.SplitAfter(src[4:], "\n")
+	for i, l := range lines {
+		if t := strings.TrimRight(l, "\n"); t == "---" || t == "..." {
+			return strings.Join(lines[i+1:], "")
+		}
+	}
+	return src
+}
+
 // Title returns the first meaningful line of a note, without Markdown or
 // frontmatter.
 func Title(src string) string {
-	lines := strings.Split(strings.ReplaceAll(src, "\r\n", "\n"), "\n")
-	if len(lines) > 0 && lines[0] == "---" {
-		for i, l := range lines[1:] {
-			if l == "---" || l == "..." {
-				lines = lines[i+2:]
-				break
-			}
-		}
-	}
-	for _, l := range lines {
+	for _, l := range strings.Split(Body(src), "\n") {
 		if t := StripInline(strings.TrimSpace(titlePrefix.ReplaceAllString(l, ""))); t != "" {
 			return t
 		}

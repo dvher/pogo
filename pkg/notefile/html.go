@@ -65,10 +65,10 @@ img { max-width: 100%; }
 func hex(c [3]uint8) string { return fmt.Sprintf("#%02x%02x%02x", c[0], c[1], c[2]) }
 
 // HTML returns the note as a standalone web page, styled for reading and
-// printing.
+// printing. Frontmatter is left out.
 func HTML(n store.Note) ([]byte, error) {
 	var body bytes.Buffer
-	if err := md.Convert([]byte(n.Content), &body); err != nil {
+	if err := md.Convert([]byte(Body(n.Content)), &body); err != nil {
 		return nil, err
 	}
 	c := palette.Get(n.Color)
