@@ -12,6 +12,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as notefile$0 from "./pkg/notefile/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as store$0 from "./pkg/store/models.js";
 
 /**
@@ -26,6 +29,23 @@ export function Create(): $CancellablePromise<store$0.Note> {
  */
 export function Delete(id: string): $CancellablePromise<void> {
     return $Call.ByID(3620747094, id);
+}
+
+/**
+ * ExportAll saves every note as Markdown files in a zip archive. Unzipped, it
+ * opens as an Obsidian vault; Import reads it back.
+ */
+export function ExportAll(): $CancellablePromise<string> {
+    return $Call.ByID(1109140882);
+}
+
+/**
+ * ExportNote saves one note as "md" or "html" through a save dialog, or opens
+ * a print window for "pdf", where the system print dialog can save a PDF.
+ * It returns the saved path, or "" if the user cancelled.
+ */
+export function ExportNote(id: string, format: string): $CancellablePromise<string> {
+    return $Call.ByID(3683884903, id, format);
 }
 
 export function Get(id: string): $CancellablePromise<store$0.Note> {
@@ -43,6 +63,21 @@ export function HideAll(): $CancellablePromise<void> {
     return $Call.ByID(1876581632);
 }
 
+/**
+ * Import adds notes from zip archives or Markdown files picked by the user.
+ */
+export function Import(): $CancellablePromise<notefile$0.Report> {
+    return $Call.ByID(1404434200);
+}
+
+/**
+ * ImportFolder adds every Markdown file in a folder picked by the user, such
+ * as an unzipped export or an Obsidian vault.
+ */
+export function ImportFolder(): $CancellablePromise<notefile$0.Report> {
+    return $Call.ByID(2785704156);
+}
+
 export function List(): $CancellablePromise<store$0.Note[] | null> {
     return $Call.ByID(1156407021);
 }
@@ -52,6 +87,13 @@ export function List(): $CancellablePromise<store$0.Note[] | null> {
  */
 export function OpenManager(): $CancellablePromise<void> {
     return $Call.ByID(3654476708);
+}
+
+/**
+ * PrintHTML returns a note as a printable web page, for the print window.
+ */
+export function PrintHTML(id: string): $CancellablePromise<string> {
+    return $Call.ByID(3753956681, id);
 }
 
 /**

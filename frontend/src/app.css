@@ -52,3 +52,8 @@ body.manager-window {
 button {
   font: inherit;
 }
+
+html:has(body.print-window),
+body.print-window {
+  height: auto;
+}

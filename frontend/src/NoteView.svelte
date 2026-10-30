@@ -16,6 +16,7 @@
   let showDots = $state(false)
   let showPalette = $state(false)
   let showPicker = $state(false)
+  let showExport = $state(false)
   // Custom color being picked, as HSV so the square maps to saturation and
   // value; previewed live and saved when the pointer is released.
   let hsv = $state({ h: 0, s: 0, v: 1 })
@@ -60,17 +61,27 @@
       save(toggleTask(note.content, Number(task.dataset.line)))
       return
     }
-    if (target.closest('.dots, .palette, .picker')) return
+    if (target.closest('.dots, .palette, .picker, .export')) return
     showDots = !showDots
-    showPalette = showPicker = false
+    showPalette = showPicker = showExport = false
     preview = null
+  }
+
+  async function exportAs(format: 'md' | 'html' | 'pdf') {
+    showExport = showDots = false
+    try {
+      await NoteService.ExportNote(id, format)
+      error = ''
+    } catch (e) {
+      error = String(e)
+    }
   }
 
   async function startEdit() {
     if (!note) return
     draft = note.content
     editing = true
-    showDots = showPalette = showPicker = false
+    showDots = showPalette = showPicker = showExport = false
     await tick()
     textarea?.focus()
   }
@@ -232,7 +243,7 @@
 
   {#if showDots && !editing}
     <div class="dots">
-      <button class="dot" title="Color" onclick={() => ((showPalette = !showPalette), (showPicker = false), (preview = null))}>
+      <button class="dot" title="Color" onclick={() => ((showPalette = !showPalette), (showPicker = showExport = false), (preview = null))}>
         <span class="swatch"></span>
       </button>
       <button class="dot" title="Edit (Markdown)" onclick={startEdit}>
@@ -241,10 +252,20 @@
       <button class="dot" title="Hide note" onclick={() => NoteService.Hide(id)}>
         <svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3 4.2M6.6 6.6C4.2 8 2.6 10.3 2 12c1 2.5 5 7 10 7a10 10 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
       </button>
+      <button class="dot" title="Export" onclick={() => ((showExport = !showExport), (showPalette = showPicker = false), (preview = null))}>
+        <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
+      </button>
       <button class="dot" class:active={note?.anchored} title={note?.anchored ? 'Unanchor' : 'Anchor in place'} onclick={toggleAnchor}>
         <svg viewBox="0 0 24 24"><path d="M16 3l5 5-3 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z" /></svg>
       </button>
     </div>
+    {#if showExport}
+      <div class="export">
+        <button onclick={() => exportAs('md')}>Markdown</button>
+        <button onclick={() => exportAs('html')}>HTML</button>
+        <button onclick={() => exportAs('pdf')}>PDF…</button>
+      </div>
+    {/if}
     {#if showPalette}
       <div class="palette">
         {#each colorNames as name}
@@ -475,6 +496,30 @@
     z-index: 3;
     --wails-draggable: no-drag;
   }
+  .export {
+    position: absolute;
+    top: 34px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgb(255 255 255 / 0.9);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+    z-index: 3;
+    --wails-draggable: no-drag;
+  }
+  .export button {
+    border: 0;
+    border-radius: 10px;
+    padding: 2px 8px;
+    background: none;
+    color: #262626;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .export button:hover { background: rgb(0 0 0 / 0.08); }
   .swatch-btn {
     width: 18px;
     height: 18px;
