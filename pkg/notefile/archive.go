@@ -3,6 +3,7 @@ package notefile
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"io/fs"
 	"path"
@@ -34,15 +35,19 @@ func WriteZip(w io.Writer, notes []store.Note) error {
 }
 
 // Parse reads notes from a file: a zip archive (every Markdown file inside)
-// or a single Markdown file. modTime is the file's modification time, used
+// or a single Markdown (.md, .markdown) or text file. modTime is the file's modification time, used
 // for notes without timestamps; it may be zero.
 func Parse(name string, data []byte, modTime time.Time) ([]Item, error) {
-	if strings.EqualFold(path.Ext(name), ".zip") {
+	switch strings.ToLower(path.Ext(name)) {
+	case ".zip":
 		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 		if err != nil {
 			return nil, err
 		}
 		return ParseFS(zr)
+	case ".md", ".markdown", ".txt":
+	default:
+		return nil, fmt.Errorf("%s: not a zip or Markdown file", name)
 	}
 	it := ParseMarkdown(name, data)
 	fillTimes(&it, modTime)

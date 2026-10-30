@@ -123,6 +123,12 @@ func TestZipRoundTrip(t *testing.T) {
 	}
 }
 
+func TestParseRejectsOtherFiles(t *testing.T) {
+	if _, err := Parse("photo.jpg", []byte("x"), time.Time{}); err == nil {
+		t.Fatal("photo imported as a note")
+	}
+}
+
 func TestParseFolder(t *testing.T) {
 	dir := t.TempDir()
 	os.MkdirAll(filepath.Join(dir, ".obsidian"), 0o755)
