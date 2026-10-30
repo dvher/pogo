@@ -13,10 +13,13 @@ with optional end-to-end encryption.
 
 - **Always on top.** Notes float above your windows. They're frameless and quiet, and you can place as many as you like.
 - **Markdown.** Write in Markdown and see it rendered. Click a `- [ ]` task to cross it off.
-- **One-click controls.** Click a note to show its dots: 🎨 color · ✏️ edit · 👁 hide · 📌 anchor.
+- **One-click controls.** Click a note to show its dots: 🎨 color · ✏️ edit · 👁 hide · ⬇ export · 📌 anchor.
 - **Anchor.** An anchored note stays put: no accidental drags or resizes.
 - **Move and resize.** Drag a note anywhere; resize it from its edges or bottom-right corner.
 - **Tray icon.** Search, show, hide and delete notes from one small manager window.
+- **Export and import.** Save a note as Markdown, HTML or PDF (through the print dialog). Under *General*,
+  export every note as a zip of Markdown files: unzipped, it opens as an Obsidian vault, and any Pogo
+  can import it. Import also reads loose Markdown files and Obsidian vaults.
 - **Start with the computer.** Turn it on under *General* in the manager (Linux and Windows).
 - **Private by default.** Notes and your sync token are encrypted on disk with AES-256-GCM, using a key kept
   in your OS keyring.
@@ -177,6 +180,7 @@ repo next to this one, as `../server` or `../pogo_pad`, and is skipped if neithe
 | Sync loop, E2E encode/decode, sync settings (shared with Pogo Pocket) | `pkg/pogosync` |
 | Sync glue: window updates, events for the manager | `sync.go`, `settings.go` |
 | Encrypted local SQLite store | `pkg/store` |
+| Export and import: Markdown with frontmatter, HTML, zip (shared with Pogo Pocket) | `pkg/notefile`, `exports.go` |
 | AES-GCM, Argon2id | `pkg/secure` |
 | OS keyring key | `internal/localkey` |
 | Pogo Pad HTTP client | `pkg/syncclient` |

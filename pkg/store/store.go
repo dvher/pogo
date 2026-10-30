@@ -273,6 +273,32 @@ func (s *Store) ApplyRemote(r Remote) (changed, created bool, err error) {
 	return err == nil, false, err
 }
 
+// Import stores an imported note if it wins last-write-wins against the local
+// copy, like ApplyRemote, but marks it dirty so it gets uploaded. A deleted
+// local note is revived when the import is newer.
+func (s *Store) Import(n Note, deviceID string) (created, updated bool, err error) {
+	local, err := s.Get(n.ID)
+	switch {
+	case errors.Is(err, ErrNotFound):
+		n.Deleted, n.DeviceID = false, deviceID
+		if n.W == 0 || n.H == 0 {
+			n.W, n.H = 260, 260
+		}
+		if err := s.Insert(n); err != nil {
+			return false, false, err
+		}
+		return true, false, nil
+	case err != nil:
+		return false, false, err
+	}
+	if local.UpdatedAt >= n.UpdatedAt {
+		return false, false, nil
+	}
+	_, err = s.db.Exec(`UPDATE notes SET content=?, color=?, deleted=0, updated_at=?, device_id=?, dirty=1 WHERE id=?`,
+		s.cipher.Seal([]byte(n.Content)), n.Color, n.UpdatedAt, deviceID, n.ID)
+	return false, err == nil, err
+}
+
 // Setting returns a plain setting, or def if unset.
 func (s *Store) Setting(key, def string) string {
 	var v string

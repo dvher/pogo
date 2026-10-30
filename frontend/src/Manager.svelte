@@ -41,6 +41,50 @@
     await NoteService.Delete(id)
   }
 
+  // Export and import
+  let exportFor = $state<string | null>(null)
+  let fileMessage = $state<{ ok: boolean; text: string } | null>(null)
+  let fileBusy = $state(false)
+
+  function errText(e: unknown) {
+    return String(e).replace(/^Error:\s*/, '')
+  }
+
+  async function exportNote(id: string, format: 'md' | 'html' | 'pdf') {
+    exportFor = null
+    try {
+      await NoteService.ExportNote(id, format)
+    } catch (e) {
+      fileMessage = { ok: false, text: errText(e) }
+    }
+  }
+
+  async function exportAll() {
+    fileBusy = true
+    try {
+      const path = await NoteService.ExportAll()
+      if (path) fileMessage = { ok: true, text: `Exported ${notes.length} notes to ${path}` }
+    } catch (e) {
+      fileMessage = { ok: false, text: errText(e) }
+    } finally {
+      fileBusy = false
+    }
+  }
+
+  async function importNotes(folder: boolean) {
+    fileBusy = true
+    try {
+      const r = folder ? await NoteService.ImportFolder() : await NoteService.Import()
+      if (r.created + r.updated + r.skipped > 0) {
+        fileMessage = { ok: true, text: `Imported ${r.created} new, updated ${r.updated}, skipped ${r.skipped}.` }
+      }
+    } catch (e) {
+      fileMessage = { ok: false, text: errText(e) }
+    } finally {
+      fileBusy = false
+    }
+  }
+
   // Sync tab
   let form = $state<Settings>({ scheme: 'http', host: '', port: '8080', token: '', enabled: false, intervalSec: 30 })
   let status = $state<SyncStatus>({
@@ -151,6 +195,10 @@
         <button onclick={() => NoteService.HideAll()}>Hide all</button>
       </div>
 
+      {#if fileMessage && !fileMessage.ok}
+        <p class="message">{fileMessage.text}</p>
+      {/if}
+
       {#if filtered.length === 0}
         <p class="empty">{notes.length ? 'No notes match your search.' : 'No notes yet — create one!'}</p>
       {/if}
@@ -169,6 +217,14 @@
               </span>
             </div>
             <div class="actions">
+              {#if exportFor === n.id}
+                <button onclick={() => exportNote(n.id, 'md')}>Markdown</button>
+                <button onclick={() => exportNote(n.id, 'html')}>HTML</button>
+                <button onclick={() => exportNote(n.id, 'pdf')}>PDF…</button>
+                <button onclick={() => (exportFor = null)} aria-label="Cancel">✕</button>
+              {:else}
+                <button onclick={() => (exportFor = n.id)}>Export</button>
+              {/if}
               {#if n.hidden}
                 <button onclick={() => NoteService.Show(n.id)}>Show</button>
               {:else}
@@ -195,6 +251,21 @@
         {/if}
         {#if startupError}
           <p class="message">{startupError}</p>
+        {/if}
+      </div>
+      <div class="card">
+        <h2>Export and import</h2>
+        <p class="hint">
+          Export saves every note as a Markdown file in a zip. Unzipped, it opens as an Obsidian vault, and any Pogo can
+          import it. Import reads Pogo exports, Markdown files and Obsidian vaults; imported notes start hidden.
+        </p>
+        <div class="row">
+          <button class="primary" disabled={fileBusy} onclick={exportAll}>Export all notes…</button>
+          <button disabled={fileBusy} onclick={() => importNotes(false)}>Import files…</button>
+          <button disabled={fileBusy} onclick={() => importNotes(true)}>Import folder…</button>
+        </div>
+        {#if fileMessage}
+          <p class="message" class:ok={fileMessage.ok}>{fileMessage.text}</p>
         {/if}
       </div>
     </section>

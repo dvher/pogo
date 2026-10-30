@@ -86,3 +86,34 @@ func TestApplyRemote(t *testing.T) {
 		t.Fatal("tombstone row inserted")
 	}
 }
+
+func TestImport(t *testing.T) {
+	s := open(t)
+	s.Insert(Note{ID: "n1", Content: "local", UpdatedAt: 100})
+	s.MarkClean("n1", 100)
+
+	if created, updated, _ := s.Import(Note{ID: "n1", Content: "old", UpdatedAt: 50}, "dev"); created || updated {
+		t.Fatal("older import applied")
+	}
+	if _, updated, _ := s.Import(Note{ID: "n1", Content: "new", Color: "pink", UpdatedAt: 200}, "dev"); !updated {
+		t.Fatal("newer import not applied")
+	}
+	if n, _ := s.Get("n1"); n.Content != "new" || n.Color != "pink" || !n.Dirty || n.DeviceID != "dev" {
+		t.Fatalf("after import: %+v", n)
+	}
+
+	// A newer import revives a deleted note.
+	s.Edit("n1", "dev", nil, nil, true)
+	n, _ := s.Get("n1")
+	s.Import(Note{ID: "n1", Content: "back", UpdatedAt: n.UpdatedAt + 1}, "dev")
+	if n, _ := s.Get("n1"); n.Deleted || n.Content != "back" {
+		t.Fatalf("not revived: %+v", n)
+	}
+
+	if created, _, _ := s.Import(Note{ID: "n2", Content: "x", CreatedAt: 5, UpdatedAt: 7}, "dev"); !created {
+		t.Fatal("new note not created")
+	}
+	if n, _ := s.Get("n2"); !n.Dirty || n.CreatedAt != 5 || n.UpdatedAt != 7 || n.W == 0 {
+		t.Fatalf("imported note: %+v", n)
+	}
+}
