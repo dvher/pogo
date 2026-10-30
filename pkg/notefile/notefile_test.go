@@ -78,6 +78,9 @@ func TestTitle(t *testing.T) {
 	if got := Title("- [x] [done](http://x)"); got != "done" {
 		t.Fatal(got)
 	}
+	if got := Title("---\ntags:\n  - a\n---\n# Idea\n"); got != "Idea" {
+		t.Fatal(got)
+	}
 }
 
 func TestHTML(t *testing.T) {

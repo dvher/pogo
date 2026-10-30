@@ -126,9 +126,19 @@ func unquote(s string) string {
 
 var titlePrefix = regexp.MustCompile(`^\s*(#+\s*|(?:[-*+]|\d+[.)])\s+)(\[[ xX]\]\s*)?`)
 
-// Title returns the first meaningful line of a note, without Markdown.
+// Title returns the first meaningful line of a note, without Markdown or
+// frontmatter.
 func Title(src string) string {
-	for _, l := range strings.Split(src, "\n") {
+	lines := strings.Split(strings.ReplaceAll(src, "\r\n", "\n"), "\n")
+	if len(lines) > 0 && lines[0] == "---" {
+		for i, l := range lines[1:] {
+			if l == "---" || l == "..." {
+				lines = lines[i+2:]
+				break
+			}
+		}
+	}
+	for _, l := range lines {
 		if t := StripInline(strings.TrimSpace(titlePrefix.ReplaceAllString(l, ""))); t != "" {
 			return t
 		}
